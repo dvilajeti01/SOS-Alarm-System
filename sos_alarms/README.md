@@ -1,3 +1,2 @@
 # SOS Alarms
-Here are multiple versions of the sos alarms. There may be more dependent on the 
-transformation of the system requirements and specs.
+Old versions of the sos alarms system. None of these were used and or are being used in production. Here for reference.
