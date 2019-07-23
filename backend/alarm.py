@@ -14,11 +14,9 @@ Created on Mon Jul  1 11:04:28 2019
 
 
 from styles import draw_table
-from email import email
-import pandas
+from sql_email import email
 
-
-class alarms:
+class alarms(object):
     
     def __init__(self,recipients):
         
@@ -35,13 +33,12 @@ class alarms:
         '''
         #Create instance of email with recipients
         self.EMAIL = email(recipients)
-        
-        self.tests = {('Temperature','any'):[['Temperature',122,'>']],
-                      ('CO','any'):[['CO',35,'>='],['Flood',0,'==']],
-                      ('Stray Voltage','any'):[['StrayVolatage',5,'>=']]}
-                
     
-    def check(self,readings,constraint):
+        self.tests = {'Temperature':[['Temperature',122,'>']],
+                      'CO':[['CO',35,'>='],['Flood',False,'==']],
+                      'Stray Voltage':[['StrayVoltage',5,'>=']]}
+    
+    def check(self,reading,constraint):
         '''
         Counts the number of invalid readings in a given row
         
@@ -66,11 +63,9 @@ class alarms:
         operation = constraint[1]
         
         #All readings must meet constraint otherwise you return 0. Think of it as if there was an invisible AND operator
-        for reading in readings:
-                
-            if OPERATIONS[operation](reading,threshold) == 0:
-                return 0
-            
+        if OPERATIONS[operation](reading,threshold) == 0:
+            return 0
+        
         return 1
     
     
@@ -91,7 +86,7 @@ class alarms:
                 'Humidity': [(0,'=='),(100,'==')],
                 'Temperature': [(264.2,'=='),(0,'<')],
                 'Barometer': [(800,'<'),(1200,'>')],
-                'Flood': [(1,'==')]
+                'Flood': [(True,'==')]
                 }
        
        
@@ -105,6 +100,7 @@ class alarms:
                 for constraint in CONSTRAINTS[col]:
                     #Check the reading at index and column against constraints
                     #Increment invalid reading count by the return of 'check' function
+                    
                     num_invalid += self.check(data.loc[row_index,col],constraint)
                    
                     if num_invalid >= threshold:
@@ -119,55 +115,56 @@ class alarms:
         Parameters:
             sos, SOS instance, The instance of an sos box to be analyzed
         '''
-    
-        for alarm_name,alarm_type in self.tests.keys():
+        
+        
+        data = sos.get_data()
+        
+        #Check fo validity of datagroup
+        if self.is_valid_reading(data):
+
+            for row in range(len(data)):
             
-            data = sos.get_data()
-       
-            #Specify flat check(main)
-            flat_check = self.alarms[alarm_name][0]
-            
-            #Retrieve list of data groupings
-            data = sos.get_data(alarm_type)
+                for test in self.tests.keys():
                 
-            for data_group in data:
+                    flat_check = self.tests[test][0]
+                    col = flat_check[0]
+                    constraint = flat_check[1:]
                     
-                #Check fo validity of datagroup
-                if self.is_valid_reading(data_group):
+                    if self.check(data.loc[row,col],constraint) == 1:
                         
-                    for index in len(data_group):
+                        #Exception handling is used for flow of control (also to avoid the Index error lol)
+                        try:
+                            conditional_check = self.tests[test][1]
                             
-                        #Check row against flat check
-                        if self.check([data_group.loc[index,flat_check[0]]],flat_check[1:]) == 1:
-                           
-                                
-                            #Exception handling is used for flow of control (also to avoid the Index error lol)
-                            try:
-                                conditional_check = self.alarms[alarm_name][1]
+                            col = conditional_check[0]
+                            constraint = conditional_check[1:]
                                         
-                            except IndexError:
-                                print('Test:',alarm_name + '(FLAT) has no conditonal test')
+                        except IndexError:
                                     
-                                subject = alarm_name.upper() + '(FLAT)' + sos.get_imeain()
+                            subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
                                     
-                                body = '<h1 align="center">Structure Info</h1>\n'
+                            body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
+                            body += '<h2 align="center">Structure Info</h1>\n'
+                            body += draw_table(sos.get_structure_info())
+                            body += '<h2 align="center">Readings</h1>'
+                            body += draw_table(data,row,'red',False)
+                            #body += '<h1 align="center">Cable Info</h1>'
+                            #body += draw_table(sos.get_cable_info())
+                        
+                            self.EMAIL.send_email(subject,body)
+                        else:
+                        
+                            if self.check(data.loc[row,col],constraint) == 1:
+                               
+                                subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
+                                    
+                                body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
+                                body += '<h2 align="center">Structure Info</h1>\n'
                                 body += draw_table(sos.get_structure_info())
-                                body += '<h1 align="center">Readings</h1>'
-                                body += draw_table(data_group,index,'red')
-                                body += '<h1 align="center">Cable Info</h1>'
-                                body += draw_table(sos.get_cable_info())
+                                body += '<h2 align="center">Readings</h1>'
+                                body += draw_table(data,row,'red',False)
+                                #body += '<h1 align="center">Cable Info</h1>'
+                                #body += draw_table(sos.get_cable_info())
                             
-                                self.EMAIL.send_email(subject,body)
-                            else:
-                        
-                                if self.check([data_group.loc[index,conditional_check[0]]],conditional_check[1:]) == 1:
-                                    subject = alarm_name.upper() + '(FLAT)' + sos.get_imeain()
-                                        
-                                    body = '<h1 align="center">Structure Info</h1>\n'
-                                    body += draw_table(sos.get_structure_info())
-                                    body += '<h1 align="center">Readings</h1>'
-                                    body += draw_table(data_group,index,'red')
-                                    body += '<h1 align="center">Cable Info</h1>'
-                                    body += draw_table(sos.get_cable_info())
-                            
-                                    self.EMAIL.send_email(subject,body)
+                                self.EMAIL.send_email(subject,body)     
+                    

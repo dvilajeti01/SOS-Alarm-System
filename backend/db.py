@@ -24,7 +24,6 @@ class db(object):
         
         file.close()
         
-        
         #Create connection to database
         self.conn = pyodbc.connect('DRIVER={%s};'
                       'SERVER=%s;'
@@ -35,13 +34,11 @@ class db(object):
         #Creates cursor object to query the database
         self.cursor = self.conn.cursor()
         
-    
     def get_conn(self):
         '''
         Returns a connection to the database
         '''
         return self.conn
-    
     
     def get_cursor(self):
         '''
@@ -53,7 +50,6 @@ class db(object):
         '''
         Close connection to avoid interference with other connections
         '''
-        
         self.cursor.close()
         
         
