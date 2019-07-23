@@ -167,5 +167,4 @@ class alarms(object):
                                 #body += draw_table(sos.get_cable_info())
                             
                                 self.EMAIL.send_email(subject,body)     
-        
-        sos.mark_as_analyzed(data)   
+                    
