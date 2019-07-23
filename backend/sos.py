@@ -31,14 +31,25 @@ class sos(object):
     
      def get_data(self):
         
-         SQL = """ SELECT MeasurementTime,Temperature,CO,Barometer
+         SQL = """ SELECT DataID,MeasurementTime,Temperature,CO,Barometer
          ,Humidity,Flood,Battery,Methane,StrayVoltage 
          FROM FIS_CONED.sos.SensorData 
          WHERE IMEINumber = ? 
-         AND Analyzed = 0;"""
+         AND Analyzed = 0 
+         AND MeasurementTime >= DATEADD(MONTH,-1,GETDATE());"""
      
          data = pandas.read_sql(SQL,self.database.get_conn(),params = [self.IMEINumber])
-             
+         
          return data
      
+     def mark_as_analyzed(self,data):
+         
+         for ID in data.loc[:,'DataID']:
+             
+             self.database.get_cursor().execute(""" UPDATE FIS_CONED.sos.SensorData
+                                                     SET Analyzed = 1 
+                                                     WHERE IMEINumber = ?
+                                                     AND DataID = ?""",(self.get_imein(),ID))
+             
+             self.database.get_conn().commit()
     
