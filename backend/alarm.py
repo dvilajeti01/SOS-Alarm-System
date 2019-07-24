@@ -34,19 +34,22 @@ class alarms(object):
         #Create instance of email with recipients
         self.EMAIL = email(recipients)
     
+        #Initializes the tests to be conducted
+        #A map consisting of an alarm name as the key and a list containing 
+        #the test and an optional condition as the vlaues
         self.tests = {'Temperature':[['Temperature',122,'>']],
                       'CO':[['CO',35,'>='],['Flood',False,'==']],
                       'Stray Voltage':[['StrayVoltage',5,'>=']]}
     
     def check(self,reading,constraint):
         '''
-        Counts the number of invalid readings in a given row
+        Checks if a given reading has reached the threshold value in such case 
+        the function returns 1 otherwise 0
         
         Parameters:
             readings: list, The reading to be checked against threshold using a specified comparison
             constraints: tuple, threshold value, and the comparison to be conducted 
             (threshold,comparison)
-            
             
         Returns:
             int, 1 if compariosn True else 0
@@ -93,21 +96,21 @@ class alarms(object):
         num_invalid = 0
        
     
-        for row_index in range(len(data)):
+        for row in range(len(data)):
            
             for col in CONSTRAINTS.keys():
                
                 for constraint in CONSTRAINTS[col]:
+                    
                     #Check the reading at index and column against constraints
                     #Increment invalid reading count by the return of 'check' function
-                    
-                    num_invalid += self.check(data.loc[row_index,col],constraint)
+                    num_invalid += self.check(data.loc[row,col],constraint)
                    
                     if num_invalid >= threshold:
                         return False
           
         return True
-
+    
     def analyze(self,sos):
         '''
         Analyze data from an instance of SOS class and send Email if an alarm is triggered
@@ -116,20 +119,22 @@ class alarms(object):
             sos, SOS instance, The instance of an sos box to be analyzed
         '''
         
+        data = sos.get_recent_data()
         
-        data = sos.get_data()
-        
-        #Check fo validity of datagroup
-        if self.is_valid_reading(data):
+        #If there is data and it is valid conduct test
+        if len(data) >= 1 and self.is_valid_reading(data):
 
+            #Check every row in the recent readings
             for row in range(len(data)):
             
+                #Against every test
                 for test in self.tests.keys():
                 
                     flat_check = self.tests[test][0]
                     col = flat_check[0]
                     constraint = flat_check[1:]
                     
+                    #Check the reading against constraint
                     if self.check(data.loc[row,col],constraint) == 1:
                         
                         #Exception handling is used for flow of control (also to avoid the Index error lol)
@@ -138,9 +143,11 @@ class alarms(object):
                             
                             col = conditional_check[0]
                             constraint = conditional_check[1:]
-                                        
+                        
+                        #If reading exceeded threshold and there is no conditional check send email
                         except IndexError:
-                                    
+                            
+                            print('sending email...')
                             subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
                                     
                             body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
@@ -152,10 +159,12 @@ class alarms(object):
                             #body += draw_table(sos.get_cable_info())
                         
                             self.EMAIL.send_email(subject,body)
+                        #Otherwise if there is a conditional check  conduct test if that returns positive then send email
                         else:
                         
                             if self.check(data.loc[row,col],constraint) == 1:
                                
+                                print('sending email...')
                                 subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
                                     
                                 body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
@@ -167,4 +176,6 @@ class alarms(object):
                                 #body += draw_table(sos.get_cable_info())
                             
                                 self.EMAIL.send_email(subject,body)     
-                    
+        
+        #After analyzing the data, mark is at analyzed as not to recieve duplicate emails
+        sos.mark_as_analyzed(data)   

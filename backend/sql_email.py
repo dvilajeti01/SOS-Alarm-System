@@ -17,6 +17,13 @@ class email(database):
         '''
         Create an instance of email with a list of recipients
         
+        Class Attributes;
+        
+            self.database: an object of the db class which provides a connection to the 
+            databse
+            
+            self.recipients: a list of recipients to send the emails to
+        
         Parameters:
             recipients: list, A list of recipients
         '''

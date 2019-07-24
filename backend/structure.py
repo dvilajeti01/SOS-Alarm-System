@@ -11,8 +11,37 @@ class structure(object):
     def __init__(self,IMEINumber,Borough,MSPlate,StructureType,StructureNumber
                  ,FacilityCode,SerialNo,isVented,Network,FacilityName
                  ,Longitude,Latitude,FacilityKey,AssetId,Inspection):
+     
+    '''
+    Initialize an object of type structure which represents a physical structure
+    in the secondary system.
+    
+    Class Attributes:
         
-        if IMEINumber is not None:
+        self.sos = object of class sos that represent the sos box loocated in
+        the structure. There may be no sos box in a given structure
+        
+        self.StructureType = The type of the structure could be SB(Service Box), MH(Manhole) or VLT(Vault)
+        self.StructureNumber = The structure number though this is not a unique indentifier
+        self.Borough = Borough in which structure is located in
+        self.MSPlate = MSPlate assosiated with structure
+        self.Network = Network associated with structure
+        self.FacilityName = Facility Name of the structure
+        self.isVented = Determines if the structure has a vented cover or not
+        self.Inspection = The latest incpection performed on the structure
+        self.FacilityCode = The facility Code of the structure used at times as a unique identifier
+        self.FacilityKey = Like facility code but used as a unique idetifier in other tables 
+        self.AssetId = Same as Facility Code or Facility Key
+        self.Longitude = The longitude gps coordinate
+        self.Latitude = The longitude gps coordinate
+    
+    Parameters:
+        
+        All the parameters are str type values that represent all the listed class attributes above
+    '''
+        #If there is a valid IMEINumber then create an object of the class sos
+        #signifying that the structure does have an sos box
+        if IMEINumber != 'nan' and IMEINumber != 'None':
             structure_info = [StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection]
             self.sos = sos(IMEINumber,SerialNo,structure_info)
         
