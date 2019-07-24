@@ -12,4 +12,4 @@
   
   ## The Alarms
   
-    The alarm system may look complicated at first glace becasue of the multiple .py files stored in the ```backend``` folder but it is not and actually it is quite the opposite. To understand the 
+   The alarm system may look complicated at first glace becasue of the multiple .py files stored in the ```backend``` folder but it is not and actually it is quite the opposite. To understand the 
