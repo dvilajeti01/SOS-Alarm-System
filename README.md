@@ -18,4 +18,4 @@
  
    You can generalize the entire secondary system analysis(SSA) to mean the task of monitoring all structures. A structure has an array of information attached to it that creates a unique identity, such information includes Borough, MSPlate, StructureType and StructureNumber. Though there is many other attributes associated to a structure these four mentioned above can be used to get the remaiing info. Given this generalization I created the structure class which has many attributes of which Borough, MSPlate, StructureType, StructureNumber, isVented(if the structure cover is vented), inspection(last performed inspection) and sos(object of the sos class). The class has multiple member function mainly a bunch of getter function to retrive all the class attributes.  
    
-   
+   ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/structure_sos_diagram.PNG)
