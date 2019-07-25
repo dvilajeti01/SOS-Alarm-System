@@ -1,4 +1,4 @@
-# SOS(Structure Observation System) Alarms
+# SOS(Structure Observation System) Alarm System
 
   The goal of the sos alarms is primarily to analyze incoming data and alert the specified members of the DE(Distributed Enineering) team. The Alerts will provide information about the structure in which the sos box is located and a snapshot of the latest data including the reading that triggered the alarm.  
 
@@ -12,4 +12,10 @@
   
   ## The Alarm System
   
-   The alarm system may look complicated at first glace becasue of the multiple .py files stored in the ```backend``` folder but it is not and actually it is quite the opposite. To understand the alarm system let me draw a picture of the backend files and how they all tie in together to make life easier.
+   The alarm system may look complicated at first glance due to all the files in the backend folder, though it is quite the opposite. To understand the alarm system let me draw a picture of the backend files and how they all tie in together to make life easier.
+   
+ ### structure.py
+ 
+   You can generalize the entire secondary system analysis(SSA) to mean the task of monitoring all structures. A structure has an array of information attached to it that creates a unique identity, such information includes Borough, MSPlate, StructureType and StructureNumber. Though there is many other attributes associated to a structure these four mentioned above can be used to get the remaiing info. Given this generalization I created the structure class which has many attributes of which Borough, MSPlate, StructureType, StructureNumber, isVented(if the structure cover is vented), inspection(last performed inspection) and sos(object of the sos class). The class has multiple member function mainly a bunch of getter function to retrive all the class attributes.  
+   
+   
