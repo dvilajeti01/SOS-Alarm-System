@@ -16,6 +16,22 @@
    
  ### structure.py
  
-   You can generalize the entire secondary system analysis(SSA) to mean the task of monitoring all structures. A structure has an array of information attached to it that creates a unique identity, such information includes Borough, MSPlate, StructureType and StructureNumber. Though there is many other attributes associated to a structure these four mentioned above can be used to get the remaiing info. Given this generalization I created the structure class which has many attributes of which Borough, MSPlate, StructureType, StructureNumber, isVented(if the structure cover is vented), inspection(last performed inspection) and sos(object of the sos class). The class has multiple member function mainly a bunch of getter function to retrive all the class attributes.  
+   You can generalize the entire secondary system analysis(SSA) to mean the task of monitoring all structures. A structure has an array of information attached to it that creates a unique identity, such information includes Borough, MSPlate, StructureType and StructureNumber. Though there is many other attributes associated to a structure these four mentioned above can be used to get the remainig info. Given this generalization I created the structure class which has many attributes of which the most important are Borough, MSPlate, StructureType, StructureNumber, isVented(if the structure cover is vented), inspection(last performed inspection) and sos(object of the sos class). The class has multiple member function mainly a bunch of getter function to retrive all the class attributes.  
+   
+   To initialize a class you must pass all the necessary attributes listed in the parameter list of the 
+   ```python  
+   def __init__(self,IMEINumber,Borough,MSPlate,StructureType,StructureNumber
+                 ,FacilityCode,SerialNo,isVented,Network,FacilityName
+                 ,Longitude,Latitude,FacilityKey,AssetId,Inspection): 
+   ```
+   method. All parameters must be of type str and in the case that info is missing just pass 'NULL' or 'nan'. It's best to initialize new objects using data retrived from sql via a pandas.DataFrame to ensure lower risk of type mismatching. An example of this can be seen in 
+   ```python 
+   __main__.py
+   ```
+   where I search the sql databse for all sos boxes and their structure info and pass the info as parameters for initializing an obect of type ```structure```. Equally as important as the other attributes but a bit more complex is the attribute 
+   ```python 
+   self.sos
+   ``` 
+   which is an object of the sos class. Going back to the generalization part of the monotoring tools an analyst of the secondary system has to determine risks in the system is SOS data via an sos box located inside a structure. As mentioned earlier not all structures have an sos box there fore the `python self.sos`
    
    ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/structure_sos_diagram.PNG)
