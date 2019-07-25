@@ -32,6 +32,33 @@
    ```python 
    self.sos
    ``` 
-   which is an object of the sos class. Going back to the generalization part of the monotoring tools an analyst of the secondary system has to determine risks in the system is SOS data via an sos box located inside a structure. As mentioned earlier not all structures have an sos box there fore the `python self.sos`
+   which is an object of the sos class. Going back to the generalization part of the monotoring tools an analyst of the secondary system has to determine risks in the system is SOS data via an sos box located inside a structure. As mentioned earlier not all structures have an sos box therefore the class attribute 
+   ```python 
+   self.sos
+   ``` 
+   may not alaways exist. This is realized by the if statement 
+   ```python
+   #If there is a valid IMEINumber then create an object of the class sos
+        #signifying that the structure does have an sos box
+        if IMEINumber != 'nan' and IMEINumber != 'None':
+            structure_info = [StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection]
+            self.sos = sos(IMEINumber,SerialNo,structure_info)
+   ```
+   which checks to see if the IMEINumber exists in which case the class attribute is created. The attribute connect the structure class and sos class together. Why no inheritence? Becasue not all structures have an sos box leaving you the user or the coder interacting between two different classes instead of only one. In away defeating the purpose of inheritence. Below is a visual between the link of the structure class and sos class.
    
    ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/structure_sos_diagram.PNG)
+   
+   How does the sos class work?
+   
+   ### sos.py
+   
+   The sos class is initilized by passing three parameters to the `__init__()` method as seen below
+   ```python
+   
+   def __init__(self,IMEINumber,SerialNo,structure_info):
+   ```
+   The three parameters are the IMEINumber of the sos box, the SerialNo of the box and the structure_info which is a list of attributes 
+   StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection all of which belong to the structure class.      There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside      the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
+   
+   The class has two primary member function aside from the normal getter functions one for each attribute.
+   
