@@ -1,14 +1,35 @@
-# SOS(Structure Observation System) Alarm System
+# Structure Observation System (SOS) Alarm Tool
+Daniel Vilajeti
 
-  The goal of the sos alarms is primarily to analyze incoming data and alert the specified members of the DE(Distributed Enineering) team. The Alerts will provide information about the structure in which the sos box is located and a snapshot of the latest data including the reading that triggered the alarm.  
 
-  To understand the code behind the alarms an explanation of SOS system is required.
+## Context
 
-## SOS Background
+The SOS serves as an integrated environmental monitoring tool for underground structures. The system is comprised of devices (also known as SOS boxes) that contain sensors and cameras that collects ambient data. The data that is captured is important because it provides a way to remotely check if an underground structure presents a safety hazard, based on insight on the condition of the structure itself . 
 
-  SOS boxes are a predictive attempt at reducing structure events such as manhole explosions. SOS boxes take measurements of the environmet in which they reside. These measurements include but are not limited to Temperature, CO (carbon monoxide), and Stray Voltage. Given the SOS box capabilities a decison was made to place them in underground structures through out the NY boroughs. Roughly 4 thousand boxes have been installed though only ~3 thousand are in †continuous communication at any given time. The boxes are manufactored by CNIGuard which also handles the communication between the boxes and ConEd. The communication includes an hourly upload of new data in the form of a .csv file located in ```\\m020diseng1\datadirs2\Secondary Analysis\RDX\CNIGuard ```. Here the file is imported and appended to ```FIS_CONED.sos.SensorData``` SQL table via an SQL SISS(Service Integration Services Package) Job created by a former intern(Mikhail Foemko) and currently maintained by Srini Budatis. The job is scheduled to run everyday in 30 minute intervals. The boxes also takes an IR (infrared) and digital photo of the cables and walls of the structure. Though the alarms do not analyze these photos(yet). Along side the .csv file contaning the new data readings CNIGuard also sends an additional .csv file specifying the locations of all the boxes. All this data is stored to ```FIS_CONED.sos.SensorData``` and ```FIS_CONED.sos.SensorLocations``` respectively.
+The SOS alarm tool will analyze the data from the SOS boxes, and will determine if the data recorded at a specfic time requires followup by appropiate personnel. In such event, an email alert will be sent that will provide information about the alarm triggered, the data collected by the SOS box, and the structure that the box is located in.
+
+## Technologies
   
-  Now since the SOS background has been given, here comes the fun part, THE ALARM SYSTEM!. The alarms are not my idea, they were a thing before my time here at ConEd. They were created by Mikhail Foemko, written in SQL by creating multiple stored procedures. Why are they being re-done? Becasue the logic was funky,there is limited to no documentation and it is extremely difficult to edit without breaking the code. In addition to those reasons it was not built to be future proof since it is so difficult to append to the code. Given these reason I decided to re-write the alarms sytem using python and a lot of documentation. I chose python becasue of its readability and its enormous library of data analysis tools. Also becasue it is easy to learn since I learned it in my first two weeks here at ConEd. 
+ * Python
+    - Pandas
+ * Microsoft SQL Server 2014
+
+## Logistics
+
+Roughly 4 thousand SOS boxes have been installed, with about 3 thousand in †continuous communication at any given time. The boxes are manufactored by an outside vendor, who also handles the communication between the SOS boxes and ConEd. The data that is collected by all active SOS boxes are uploaded hourly as a .csv file located in ```\\m020diseng1\datadirs2\Secondary Analysis\RDX\CNIGuard ```. 
+
+From here, the file is parsed and appended to a Microsoft SQL Server table named ```FIS_CONED.sos.SensorData``` via an SQL SISS(Service Integration Services Package) Job created by a former intern(Mikhail Foemko) and currently maintained by Srini Budatis. The job is scheduled to run everyday in 30 minute intervals. 
+> The photographic data (still and infared photos) the box can provide is also stored on the Con Edison side. However, the SOS alarm tool currently *does not support analysis of this data*. 
+
+The vendor also sends a .csv file specifying the locations of all the boxes. All this data is stored to ```FIS_CONED.sos.SensorData``` and ```FIS_CONED.sos.SensorLocations``` respectively.
+
+From here, we will use Pandas to help analyze the data and determine if any row of the tabular data represents a condition that needs to be further analyzed by appropiate personnel. 
+
+## Justification
+
+The original tool was written in SQL by creating multiple stored procedures. However, there is limited (and sometimes no) documentation on the procedures. It would be extremely difficult to edit without breaking the code. The plan with the new Alarm tool is that it be built to be future proof since it is so difficult to append to the code. 
+
+Daniel Vilajeti decided to rebuild the alarm tool using python and supplement the solution with extensive documentation. He chose python for its readability, low learning curve, and its enormous library of data analysis tools.
   
   ## The Alarm System
   
