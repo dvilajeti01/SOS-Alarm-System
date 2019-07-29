@@ -46,7 +46,7 @@
    ```
    which checks to see if the IMEINumber exists in which case the class attribute is created. The attribute connect the structure class and sos class together. Why no inheritence? Becasue not all structures have an sos box leaving you the user or the coder interacting between two different classes instead of only one. In away defeating the purpose of inheritence. Below is a visual between the link of the structure class and sos class.
    
-   ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/structure_sos_diagram.PNG)
+   ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/Structure-SOS_Diagram.PNG)
    
    How does the sos class work?
    
@@ -60,5 +60,16 @@
    The three parameters are the IMEINumber of the sos box, the SerialNo of the box and the structure_info which is a list of attributes 
    StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection all of which belong to the structure class.      There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside      the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
    
-   The class has two primary member function aside from the normal getter functions one for each attribute.
+   The class has two primary member function aside from the normal getter functions one for each attribute.The first being
+   ```python
+   def get_recent_data(self):
+   ```
+   
+   Which retrives all the unanalyzed data in the past month for an sos box with a given IMEINumber ordered by MeasuremenTime to ensure the data measurement times are consistent. The other member function is 
+   ```python
+   def mark_as_analyzed(self,data):
+   ```
+   which takes a dataframe representing data reaings for the given sos box and updates the 'Analyzed' column to 1 from 0 in the sql database. This signifies that the program has analyzed the data and prevents duplicate alarms or wasted computation.
+   
+   
    
