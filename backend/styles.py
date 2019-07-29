@@ -74,7 +74,5 @@ def draw_table(data,trigger_readings = [],headercolor = '#4286f4',border_collaps
         #UGLY FIX TO THE TABLE PROBLEM
         html_string = re.sub("\s{4}#{1}[a-z|A-Z|0-9|_]{1,} table","table",html_string)
         
-        print('\n'+html_string+'\n')
-        
         return html_string
     

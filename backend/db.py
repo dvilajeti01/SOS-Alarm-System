@@ -13,8 +13,10 @@ class db(object):
         Initialize an instance of class db which contains a connection instance from
         pyodbc and a cursor object
         
-        self.conn
-        self.cursor
+        Class Attributes:
+            
+            self.conn: connection to database
+            self.cursor: Cursor object to execute queries
         '''
         
         file = open('SQL_DB.txt','r')
