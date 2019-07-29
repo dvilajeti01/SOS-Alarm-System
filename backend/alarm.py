@@ -111,6 +111,22 @@ class alarms(object):
           
         return True
     
+    def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
+        
+        print('sending email...')
+        subject = alarm_type + ' Alarm Notification--' + sos.get_imein()
+                                    
+        body = '<h1 align="center">%s</h1>\n' % (alarm_type + ' Threshold Alarm')
+        body += '<h2 align="center">Structure Info</h1>\n'
+        body += draw_table(sos.get_structure_info())
+        body += '<h2 align="center">Readings</h1>'
+        body += draw_table(data,trigger_readings,'red',False)
+        #body += '<h1 align="center">Cable Info</h1>'
+        #body += draw_table(sos.get_cable_info())
+                        
+        self.EMAIL.send_email(subject,body)
+        
+    
     def analyze(self,sos):
         '''
         Analyze data from an instance of SOS class and send Email if an alarm is triggered
@@ -120,6 +136,8 @@ class alarms(object):
         '''
         
         data = sos.get_recent_data()
+        
+        alarms_map = {}
         
         #If there is data and it is valid conduct test
         if len(data) >= 1 and self.is_valid_reading(data):
@@ -146,36 +164,24 @@ class alarms(object):
                         
                         #If reading exceeded threshold and there is no conditional check send email
                         except IndexError:
-                            
-                            print('sending email...')
-                            subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
-                                    
-                            body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
-                            body += '<h2 align="center">Structure Info</h1>\n'
-                            body += draw_table(sos.get_structure_info())
-                            body += '<h2 align="center">Readings</h1>'
-                            body += draw_table(data,row,'red',False)
-                            #body += '<h1 align="center">Cable Info</h1>'
-                            #body += draw_table(sos.get_cable_info())
                         
-                            self.EMAIL.send_email(subject,body)
+                            alarms_map[test.upper()].append(row)
+                        
                         #Otherwise if there is a conditional check  conduct test if that returns positive then send email
                         else:
                         
                             if self.check(data.loc[row,col],constraint) == 1:
                                
-                                print('sending email...')
-                                subject = test.upper() + ' Alarm Notification--' + sos.get_imein()
-                                    
-                                body = '<h1 align="center">%s</h1>\n' % (test.upper() + ' Threshold Alarm')
-                                body += '<h2 align="center">Structure Info</h1>\n'
-                                body += draw_table(sos.get_structure_info())
-                                body += '<h2 align="center">Readings</h1>'
-                                body += draw_table(data,row,'red',False)
-                                #body += '<h1 align="center">Cable Info</h1>'
-                                #body += draw_table(sos.get_cable_info())
-                            
-                                self.EMAIL.send_email(subject,body)     
+                                alarms_map[test.upper()].append(row)     
+        
+        
+        for alarm in alarms_map.keys():
+            
+            trigger_readings = alarms_map[alarm]
+            
+            if len(trigger_readings) >= 1:
+                
+                self.trigger_alarm(alarm,sos,data,alarms_map[alarm])
         
         #After analyzing the data, mark is at analyzed as not to recieve duplicate emails
         sos.mark_as_analyzed(data)   
