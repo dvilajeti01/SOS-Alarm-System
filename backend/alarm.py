@@ -111,7 +111,18 @@ class alarms(object):
           
         return True
     
-    def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
+     def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
+        '''
+        Builds the email to be sent if an alarm is triggered
+        
+        Parameters:
+            
+            alarm_type: str, The name of the larm being triggered
+            sos: <class 'sos.sos'>, The sos object whose data is being analyzed
+            data: <class 'pandas.DataFrame'> The data that triggered the alarm 
+            trigger_readings: list, a list of rows in the data table that specify the trigger readings(the rows to be highlighted)
+        '''
+        
         
         print('sending email...')
         subject = alarm_type + ' Alarm Notification--' + sos.get_imein()
@@ -174,14 +185,14 @@ class alarms(object):
                                
                                 alarms_map[test.upper()].append(row)     
         
-        
+        #For every alarm send an email if there were any readings that exceeded thresholds
         for alarm in alarms_map.keys():
             
             trigger_readings = alarms_map[alarm]
             
             if len(trigger_readings) >= 1:
                 
-                self.trigger_alarm(alarm,sos,data,alarms_map[alarm])
+                self.trigger_alarm(alarm,sos,data,trigger_readings)
         
         #After analyzing the data, mark is at analyzed as not to recieve duplicate emails
-        sos.mark_as_analyzed(data)   
+        sos.mark_as_analyzed(data)
