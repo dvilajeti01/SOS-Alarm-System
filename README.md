@@ -41,13 +41,12 @@ The alarm system may look complicated at first glance due to all the files in th
 The SOS is responsible for monitoring secondary structures, particularly manholes and service boxes. A structure can be seen as a class with attributes that describe each class instance. The attributes that make each instance of said class unique are StructureType, StructureNumber, MSPlate. Otherwise, the class has multiple member functions that are mostly getter functions. This introduces the first file of importance, `structure.py`.  
 
 #### SOS Boxes
-Another attribute of the **structure** class that is of importance is `sos`, which itself is an attribute of type **sos** class. Here is the context: a particular structure may have an SOS box installed. This is the device that will collect the data to later to determine risks in the system. 
-> Thus we can say that the SOS box is a property (attribute) of the more general structure *explained later* 
-These two main concepts drive the functionality of the email tool, thus we begin with explaining each python file.
+Another attribute of the **structure** class that is of importance is `sos`, which itself is a class of type **sos**. Here is the context: a particular structure may have an SOS box installed. This is the device that will collect the data to later to determine risks in the system. 
+> Thus we can say that the SOS box is a property (attribute) of the more general structure (*explained later*). These two main concepts drive the functionality of the email tool, thus we begin with explaining each python file.
 
  ### structure.py
    
-   To initialize the class you must pass all the necessary attributes listed in the parameter list of the __init__ method, as shown below: 
+   To initialize the class you must pass all the necessary attributes listed in the parameter list of the `__init__()` method, as shown below: 
    
    ```python  
    def __init__(self,IMEINumber,Borough,MSPlate,StructureType,StructureNumber
@@ -72,7 +71,7 @@ may not alaways exist. This is realized by an if statement that checks to see if
             structure_info = [StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection]
             self.sos = sos(IMEINumber,SerialNo,structure_info)
    ```
-From this implementation, one can see that composition between the sos and structure classes is favored over having an sos object inherit from the structure class. But why does the SOS box not inherit from the structure class? Because the structure **has a** SOS box, it is **NOT A** SOS box. This is the main difference between the composition and inheritance OOP patterns. The diagram below helps visualize this difference.
+From this implementation, one can see that composition between the sos and structure classes is favored over inheritance. But why does the SOS box not inherit from the structure class? Because the structure **has a** SOS box, an SOS box **is not** a structure. The difference in relationships described is the main difference between the composition and inheritance OOP patterns. The diagram below helps visualize this difference.
    
    ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/Structure-SOS_Diagram.PNG)
    
@@ -80,24 +79,34 @@ From this implementation, one can see that composition between the sos and struc
    
    ### sos.py
    
-   The sos class is initilized by passing three parameters to the `__init__()` method as seen below
-   ```python
-   
-   def __init__(self,IMEINumber,SerialNo,structure_info):
-   ```
-   The three parameters are the IMEI Number and Serial Number of the SOS box, and the information about the structure where the SOS box is installed. This is a list of attributes: 
-   StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection all of which belong to the structure class.      There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside      the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
-   
-   The class has two primary member function aside from the normal getter functions one for each attribute.The first being
-   ```python
-   def get_recent_data(self):
-   ```
-   
-   Which retrives all the unanalyzed data in the past month for an sos box with a given IMEINumber ordered by MeasuremenTime to ensure the data measurement times are consistent. The other member function is 
-   ```python
-   def mark_as_analyzed(self,data):
-   ```
-   which takes a dataframe representing data reaings for the given sos box and updates the 'Analyzed' column to 1 from 0 in the sql database. This signifies that the program has analyzed the data and prevents duplicate alarms or wasted computation.
+The sos class is initilized by passing three parameters to the `__init__()` method as seen below
+ ```python
+
+ def __init__(self,IMEINumber,SerialNo,structure_info):
+ ```
+ The three parameters are the IMEI Number and Serial Number of the SOS box, and the information about the structure where the SOS box is installed. This is a list of attributes: 
+ * StructureType
+ * StructureNumber
+ * Borough
+ * MSPlate 
+ * Network 
+ * FacilityName 
+ * isVented 
+ * Inspection 
+
+All of which belong to the structure class. There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
+
+The class has two primary member function aside from the normal getter functions for each attribute: 
+
+```python
+def get_recent_data(self):
+```
+###### Fetches the unanalyzed data in the past month for an sos box with a given `IMEINumber` ordered by `MeasurementTime` to ensure the data measurement times are consistent. 
+ 
+ ```python
+ def mark_as_analyzed(self,data):
+ ```
+###### Takes in [dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html) representing data readings for the given sos box and updates the 'Analyzed' column to 1 from 0 in the sql database. This signifies that the program has analyzed the data and prevents duplicate alarms or wasted computation.
    
    
    
