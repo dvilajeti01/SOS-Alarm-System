@@ -1,5 +1,6 @@
 # Structure Observation System (SOS) Alarm Tool
-Daniel Vilajeti
+#### Development: Daniel Vilajeti
+#### Documentation: Daniel Vilajeti, Steven Barrios
 
 
 ## Context
@@ -11,7 +12,7 @@ The SOS alarm tool will analyze the data from the SOS boxes, and will determine 
 ## Technologies
   
  * Python
-    - Pandas
+    - [Pandas](https://pandas.pydata.org/)
  * Microsoft SQL Server 2014
 
 ## Logistics
@@ -30,34 +31,40 @@ From here, we will use Pandas to help analyze the data and determine if any row 
 The original tool was written in SQL by creating multiple stored procedures. However, there is limited (and sometimes no) documentation on the procedures. It would be extremely difficult to edit without breaking the code. The plan with the new Alarm tool is that it be built to be future proof since it is so difficult to append to the code. 
 
 Daniel Vilajeti decided to rebuild the alarm tool using python and supplement the solution with extensive documentation. He chose python for its readability, low learning curve, and its enormous library of data analysis tools.
+
+## The Alarm System
   
-  ## The Alarm System
-  
-   The alarm system may look complicated at first glance due to all the files in the backend folder, though it is quite the opposite. To understand the alarm system let me draw a picture of the backend files and how they all tie in together to make life easier.
+The alarm system may look complicated at first glance due to all the files in the backend folder, though it is quite the opposite. To understand the alarm system, let us begin by first establishing fundamental concepts of the SOS as a process, and relating this back to the backend files.
    
+#### Structures
+
+The SOS is responsible for monitoring secondary structures, particularly manholes and service boxes. A structure can be seen as a class with attributes that describe each class instance. The attributes that make each instance of said class unique are StructureType, StructureNumber, MSPlate. Otherwise, the class has multiple member functions that are mostly getter functions. This introduces the first file of importance, `structure.py`.  
+
+#### SOS Boxes
+Another attribute of the **structure** class that is of importance is `sos`, which itself is an attribute of type **sos** class. Here is the context: a particular structure may have an SOS box installed. This is the device that will collect the data to later to determine risks in the system. 
+> Thus we can say that the SOS box is a property (attribute) of the more general structure *explained later* 
+These two main concepts drive the functionality of the email tool, thus we begin with explaining each python file.
+
  ### structure.py
- 
-   You can generalize the entire secondary system analysis(SSA) to mean the task of monitoring all structures. A structure has an array of information attached to it that creates a unique identity, such information includes Borough, MSPlate, StructureType and StructureNumber. Though there is many other attributes associated to a structure these four mentioned above can be used to get the remainig info. Given this generalization I created the structure class which has many attributes of which the most important are Borough, MSPlate, StructureType, StructureNumber, isVented(if the structure cover is vented), inspection(last performed inspection) and sos(object of the sos class). The class has multiple member function mainly a bunch of getter function to retrive all the class attributes.  
    
-   To initialize a class you must pass all the necessary attributes listed in the parameter list of the 
+   To initialize the class you must pass all the necessary attributes listed in the parameter list of the __init__ method, as shown below: 
+   
    ```python  
    def __init__(self,IMEINumber,Borough,MSPlate,StructureType,StructureNumber
                  ,FacilityCode,SerialNo,isVented,Network,FacilityName
                  ,Longitude,Latitude,FacilityKey,AssetId,Inspection): 
    ```
-   method. All parameters must be of type str and in the case that info is missing just pass 'NULL' or 'nan'. It's best to initialize new objects using data retrived from sql via a pandas.DataFrame to ensure lower risk of type mismatching. An example of this can be seen in 
+All parameters must be of type str and in the case that info is missing just pass 'NULL' or 'nan'. It's best to initialize new objects using data retrived from sql via a pandas [Dataframe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html) to ensure lower risk of type mismatching. An example of this can be seen in 
    ```python 
    __main__.py
    ```
-   where I search the sql databse for all sos boxes and their structure info and pass the info as parameters for initializing an obect of type ```structure```. Equally as important as the other attributes but a bit more complex is the attribute 
+This file searches the sql database for all SOS boxes and their associated structure info. Then it passes the info as parameters to initialize each **structure** class instance. As explained earlier, since not all structures have an SOS box installed, 
    ```python 
+   structure.py
+   ...
    self.sos
    ``` 
-   which is an object of the sos class. Going back to the generalization part of the monotoring tools an analyst of the secondary system has to determine risks in the system is SOS data via an sos box located inside a structure. As mentioned earlier not all structures have an sos box therefore the class attribute 
-   ```python 
-   self.sos
-   ``` 
-   may not alaways exist. This is realized by the if statement 
+may not alaways exist. This is realized by an if statement that checks to see if there is an valid IMEI Number retrieved from the database for the current structure in being read:
    ```python
    #If there is a valid IMEINumber then create an object of the class sos
         #signifying that the structure does have an sos box
@@ -65,11 +72,11 @@ Daniel Vilajeti decided to rebuild the alarm tool using python and supplement th
             structure_info = [StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection]
             self.sos = sos(IMEINumber,SerialNo,structure_info)
    ```
-   which checks to see if the IMEINumber exists in which case the class attribute is created. The attribute connect the structure class and sos class together. Why no inheritence? Becasue not all structures have an sos box leaving you the user or the coder interacting between two different classes instead of only one. In away defeating the purpose of inheritence. Below is a visual between the link of the structure class and sos class.
+From this implementation, one can see that composition between the sos and structure classes is favored over having an sos object inherit from the structure class. But why does the SOS box not inherit from the structure class? Because the structure **has a** SOS box, it is **NOT A** SOS box. This is the main difference between the composition and inheritance OOP patterns. The diagram below helps visualize this difference.
    
    ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/Structure-SOS_Diagram.PNG)
    
-   How does the sos class work?
+   
    
    ### sos.py
    
@@ -78,7 +85,7 @@ Daniel Vilajeti decided to rebuild the alarm tool using python and supplement th
    
    def __init__(self,IMEINumber,SerialNo,structure_info):
    ```
-   The three parameters are the IMEINumber of the sos box, the SerialNo of the box and the structure_info which is a list of attributes 
+   The three parameters are the IMEI Number and Serial Number of the SOS box, and the information about the structure where the SOS box is installed. This is a list of attributes: 
    StructureType,StructureNumber,Borough,MSPlate,Network,FacilityName,isVented,Inspection all of which belong to the structure class.      There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside      the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
    
    The class has two primary member function aside from the normal getter functions one for each attribute.The first being
