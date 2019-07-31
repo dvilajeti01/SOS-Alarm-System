@@ -111,7 +111,7 @@ class alarms(object):
           
         return True
     
-     def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
+    def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
         '''
         Builds the email to be sent if an alarm is triggered
         
@@ -125,13 +125,13 @@ class alarms(object):
         
         
         print('sending email...')
-        subject = alarm_type + ' Alarm Notification--' + sos.get_imein()
+        subject = alarm_type.upper() + ' Alarm Notification--' + sos.get_imein() + '--' + sos.get_serialno()
                                     
-        body = '<h1 align="center">%s</h1>\n' % (alarm_type + ' Threshold Alarm')
+        body = '<h1 align="center">%s</h1>\n' % (alarm_type.upper() + ' Threshold Alarm')
         body += '<h2 align="center">Structure Info</h1>\n'
         body += draw_table(sos.get_structure_info())
         body += '<h2 align="center">Readings</h1>'
-        body += draw_table(data,trigger_readings,'red',False)
+        body += draw_table(sos._get_context(data),alarm_type,trigger_readings,'red',False)
         #body += '<h1 align="center">Cable Info</h1>'
         #body += draw_table(sos.get_cable_info())
                         
@@ -146,7 +146,7 @@ class alarms(object):
             sos, SOS instance, The instance of an sos box to be analyzed
         '''
         
-        data = sos.get_recent_data()
+        data = sos.get_unanalyzed_data()
         
         alarms_map = {}
         
@@ -160,6 +160,7 @@ class alarms(object):
                 for test in self.tests.keys():
                 
                     flat_check = self.tests[test][0]
+                    
                     col = flat_check[0]
                     constraint = flat_check[1:]
                     
@@ -176,23 +177,24 @@ class alarms(object):
                         #If reading exceeded threshold and there is no conditional check send email
                         except IndexError:
                         
-                            alarms_map[test.upper()].append(row)
+                            alarms_map.setdefault(test,[]).append(row)
                         
                         #Otherwise if there is a conditional check  conduct test if that returns positive then send email
                         else:
                         
                             if self.check(data.loc[row,col],constraint) == 1:
                                
-                                alarms_map[test.upper()].append(row)     
+                                alarms_map.setdefault(test,[]).append(row)     
         
         #For every alarm send an email if there were any readings that exceeded thresholds
         for alarm in alarms_map.keys():
             
             trigger_readings = alarms_map[alarm]
+            print(alarm,trigger_readings)
             
             if len(trigger_readings) >= 1:
                 
                 self.trigger_alarm(alarm,sos,data,trigger_readings)
         
         #After analyzing the data, mark is at analyzed as not to recieve duplicate emails
-        sos.mark_as_analyzed(data)
+        sos._mark_as_analyzed(data)   
