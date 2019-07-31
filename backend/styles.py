@@ -41,13 +41,12 @@ def highlight_trigger_reading(row,color = 'darkorange'):
     style = 'background-color: %s' % color
     return [style for cell in row]
 
-def draw_table(data,trigger_readings = [],headercolor = '#4286f4',border_collapse = True):
+def draw_table(data,alarm_type = [],trigger_readings = [],headercolor = '#4286f4',border_collapse = True):
         """
         Function draws the table for a given sql query
         
         Parameters:
-            trigger_readings: dict, A dictionary that maps rows that triggered 
-            an alarm with a color specifying the alarm
+            trigger_readings: list, A list of all the rows to be highlighted 
         
         Return:
             html_string: str, Contains the html code which represents the table created as a string 
@@ -66,7 +65,7 @@ def draw_table(data,trigger_readings = [],headercolor = '#4286f4',border_collaps
         #Apply table styles (IMPORTANT: You must highlight odd rows first so you don't override the trigger reading row highlight)
         html_string = table.style.\
                             apply(highlight_odd_rows, subset = pandas.IndexSlice[1::2]).\
-                            apply(highlight_trigger_reading, subset = pandas.IndexSlice[trigger_readings]).\
+                            apply(highlight_trigger_reading, subset = pandas.IndexSlice[trigger_readings,alarm_type]).\
                             set_table_styles(styles).\
                             hide_index().\
                             render()
