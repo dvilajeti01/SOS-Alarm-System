@@ -5,7 +5,7 @@
 
 ## Context
 
-The SOS serves as an integrated environmental monitoring tool for underground structures. The system is comprised of devices (also known as SOS boxes) that contain sensors and cameras that collects ambient data. The data that is captured is important because it provides a way to remotely check if an underground structure presents a safety hazard, based on insight on the condition of the structure itself . 
+The SOS serves as an integrated environmental monitoring tool for underground structures. The system is comprised of devices (also known as SOS boxes) that contain sensors and cameras that collect ambient data. The data that is captured is important because it provides a way to remotely check if an underground structure presents a safety hazard, based on insight on the condition of the structure itself . 
 
 The SOS alarm tool will analyze the data from the SOS boxes, and will determine if the data recorded at a specfic time requires followup by appropiate personnel. In such event, an email alert will be sent that will provide information about the alarm triggered, the data collected by the SOS box, and the structure that the box is located in.
 
@@ -57,7 +57,7 @@ All parameters must be of type str and in the case that info is missing just pas
    ```python 
    __main__.py
    ```
-This file searches the sql database for all SOS boxes and their associated structure info. Then it passes the info as parameters to initialize each **structure** class instance. As explained earlier, since not all structures have an SOS box installed, 
+This file searches the sql database for all SOS boxes and their associated structure info. Then it passes the info as parameters to initialize each **structure** class instance. As explained earlier, not all structures have an SOS box installed, and 
    ```python 
    structure.py
    ...
@@ -94,7 +94,7 @@ The sos class is initilized by passing three parameters to the `__init__()` meth
  * isVented 
  * Inspection 
 
-All of which belong to the structure class. There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
+All of which belong to the structure class as well. There is no practical use of declaring an object of the sos class alone. The intended use is for the class to be initialized inside the structure `__init__()` method. MENTION THE DATABSE ATTRIBUTE
 
 The class has two primary member function aside from the normal getter functions for each attribute: 
 
