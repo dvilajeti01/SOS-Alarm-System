@@ -120,6 +120,8 @@ def _get_context(self,data):
 ```
 ###### As proposed by the recipients of the emails(Zhou) it would be best that the number of rows in the table displayed on the email would be a fixed number. Specifically 20 rows of readings since it provides a sufficient picture of the sos box reading days prior. The method accepts the data you want to append context to. Currently there is an assumtion that the data passed is a subset of the top 20 rows in the total data and that the data passed is the top most data of the top 20 just retieved. These assumptions simplify the implementation of this method though it is only a temporary fix. 
 
+#### Diagram 2
+
 ![alt text](https://github.com/dvilajeti01/SOS-Alarm-System/blob/version-1.1/README_pictures/Data_plus_context_padding.PNG)
 
 You may have noticed that these methods run queries to obtain or alter info in the SQL databse. This is accomplished by connecting to the database and excecuting the queries. This task is done using the 
