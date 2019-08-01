@@ -5,6 +5,7 @@ Created on Wed Jul 10 15:30:58 2019
 @author: VILAJETID
 """
 import pyodbc
+import pandas
 
 class db(object):
     
@@ -53,6 +54,4 @@ class db(object):
         Close connection to avoid interference with other connections
         '''
         self.cursor.close()
-        
-        
-        
+     

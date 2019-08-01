@@ -39,7 +39,7 @@ class alarms(object):
         #the test and an optional condition as the vlaues
         self.tests = {'Temperature':[['Temperature',122,'>']],
                       'CO':[['CO',35,'>='],['Flood',False,'==']],
-                      'Stray Voltage':[['StrayVoltage',5,'>=']]}
+                      'StrayVoltage':[['StrayVoltage',5,'>=']]}
     
     def check(self,reading,constraint):
         '''
@@ -111,7 +111,7 @@ class alarms(object):
           
         return True
     
-    def trigger_alarm(self,alarm_type,sos,data,trigger_readings = []):
+    def trigger_alarm(self,alarm_type,sos,data,trigger_readings = [],FILL = 20):
         '''
         Builds the email to be sent if an alarm is triggered
         
@@ -130,8 +130,16 @@ class alarms(object):
         body = '<h1 align="center">%s</h1>\n' % (alarm_type.upper() + ' Threshold Alarm')
         body += '<h2 align="center">Structure Info</h1>\n'
         body += draw_table(sos.get_structure_info())
+        
+        
         body += '<h2 align="center">Readings</h1>'
-        body += draw_table(sos._get_context(data),alarm_type,trigger_readings,'red',False)
+        
+        if len(data) < 20:
+            recent_readings = sos._get_context(data,FILL)
+        else:
+            recent_readings = data
+        
+        body += draw_table(recent_readings,alarm_type,trigger_readings,'red',False)
         #body += '<h1 align="center">Cable Info</h1>'
         #body += draw_table(sos.get_cable_info())
                         

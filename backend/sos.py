@@ -90,33 +90,34 @@ class sos(object):
             
             self.database.get_conn().commit()
 
-    def _get_context(self,data):
+    def _get_context(self,data,FILL):
         '''
-        Given a group of data ordered by MeasurementTime where the most recent are at the top,
-        append older data so the size of the table is 20 rows
+        Append a older data to the data passed so the total number of rows equals
+        that specified in 'fill'.
         
         Parameters:
             data: <class pandas.DataFrame>, The data you would like to pad with 
             older data
+            fill: int, the total number of rows you want the resulting table to be
            
          Returns:
-             full_data: <class pandas.DataFrame>, the table with the original data
-             and the older context data
+             full_data: <class pandas.DataFrame>, a dataframe of size = fill
         '''
         
-        if len(data) < 20:
-            
-            SQL = """SELECT TOP 20 DataID,MeasurementTime,Temperature,CO,Barometer
-            ,Humidity,Flood,Battery,Methane,StrayVoltage 
-            FROM FIS_CONED.sos.SensorData 
-            WHERE IMEINumber = ? 
-            ORDER BY MeasurementTime DESC;"""
-    
-            full_data = pandas.read_sql(SQL,self.database.get_conn(),params = [self.IMEINumber])
-           
-            return full_data
-       
-        else:
-           
-            return data
+        latest_data = data.loc[:,'MeasurementTime'].max()
+        
+        SQL = """
+        SELECT TOP %s DataID,MeasurementTime,Temperature,CO,Barometer
+        ,Humidity,Flood,Battery,Methane,StrayVoltage 
+        FROM FIS_CONED.sos.SensorData
+        WHERE MeasurementTime <= ?
+        AND IMEINumber = ?
+        ORDER BY MeasurementTime DESC;
+        """ % str(FILL)
+        
+        context_data = pandas.read_sql(SQL,self.database.get_conn(),params = [latest_data,self.IMEINumber])
+        
+        return context_data
+        
+        
     
