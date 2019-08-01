@@ -5,6 +5,7 @@ Created on Wed Jul 10 15:30:58 2019
 @author: VILAJETID
 """
 import pyodbc
+import pandas
 
 class db(object):
     
@@ -13,8 +14,10 @@ class db(object):
         Initialize an instance of class db which contains a connection instance from
         pyodbc and a cursor object
         
-        self.conn
-        self.cursor
+        Class Attributes:
+            
+            self.conn: connection to database
+            self.cursor: Cursor object to execute queries
         '''
         
         file = open('SQL_DB.txt','r')
@@ -23,7 +26,6 @@ class db(object):
         db_info = file.read()
         
         file.close()
-        
         
         #Create connection to database
         self.conn = pyodbc.connect('DRIVER={%s};'
@@ -35,13 +37,11 @@ class db(object):
         #Creates cursor object to query the database
         self.cursor = self.conn.cursor()
         
-    
     def get_conn(self):
         '''
         Returns a connection to the database
         '''
         return self.conn
-    
     
     def get_cursor(self):
         '''
@@ -53,8 +53,5 @@ class db(object):
         '''
         Close connection to avoid interference with other connections
         '''
-        
         self.cursor.close()
-        
-        
-        
+     
