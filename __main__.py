@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jul 22 10:09:45 2019
+'''
+name:__main__.py
 
-@author: VILAJETID
-"""
+description: Program performs 'black and white' analysis on all
+incoming sos data and sends alert emails
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
+'''
 
 from structure import structure
 from db import db
@@ -138,4 +147,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
