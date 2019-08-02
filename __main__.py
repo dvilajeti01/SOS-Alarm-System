@@ -104,7 +104,7 @@ def load_structures():
             #After the row has been properly encoded do as above in the 'try' argument
             structures.append(structure(*net))
  
-    print('Structures Loaded!')
+    print('%s Structures Loaded!' % str(len(structures)))
 
     return structures
 
@@ -124,17 +124,18 @@ def main():
 
     #Create alarm object
     test_alarm = alarms(SPEAR) #DRAW FROM sos.Users
-
+    
     while not finished:
         
         print('ANALYZING DATA...')    
         #For every structure analyze the sos data
         for struct in structures:
             
-            test_alarm.analyze(struct.sos)
+           test_alarm.analyze(struct.sos)
     
         print('FINISHED ANALYZING')
 
 
 if __name__ == '__main__':
     main()
+        
