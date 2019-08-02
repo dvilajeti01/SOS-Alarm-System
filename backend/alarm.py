@@ -123,7 +123,7 @@ class alarms(object):
             trigger_readings: list, a list of rows in the data table that specify the trigger readings(the rows to be highlighted)
         '''
         
-        recent_readings = sos._get_context(data)
+        recent_readings = sos._get_context(data,FILL)
         
         if self.is_valid_reading(recent_readings):
         
