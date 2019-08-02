@@ -104,20 +104,24 @@ class sos(object):
              full_data: <class pandas.DataFrame>, a dataframe of size = fill
         '''
         
-        latest_data = data.loc[:,'MeasurementTime'].max()
-        
-        SQL = """
-        SELECT TOP %s DataID,MeasurementTime,Temperature,CO,Barometer
-        ,Humidity,Flood,Battery,Methane,StrayVoltage 
-        FROM FIS_CONED.sos.SensorData
-        WHERE MeasurementTime <= ?
-        AND IMEINumber = ?
-        ORDER BY MeasurementTime DESC;
-        """ % str(FILL)
-        
-        context_data = pandas.read_sql(SQL,self.database.get_conn(),params = [latest_data,self.IMEINumber])
-        
-        return context_data
-        
-        
+        if len(data) < FILL:
+            
+            latest_data = data.loc[:,'MeasurementTime'].max()
+            
+            SQL = """
+            SELECT TOP %s DataID,MeasurementTime,Temperature,CO,Barometer
+            ,Humidity,Flood,Battery,Methane,StrayVoltage 
+            FROM FIS_CONED.sos.SensorData
+            WHERE MeasurementTime <= ?
+            AND IMEINumber = ?
+            ORDER BY MeasurementTime DESC;
+            """ % str(FILL)
+            
+            context_data = pandas.read_sql(SQL,self.database.get_conn(),params = [latest_data,self.IMEINumber])
+            
+            return context_data
+             
+        else:
+            return data
+           
     
