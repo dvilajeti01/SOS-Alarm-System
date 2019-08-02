@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 10 15:30:58 2019
+name:db.py
 
-@author: VILAJETID
+description: Allows for connection to sql database
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
 """
 import pyodbc
 import pandas
