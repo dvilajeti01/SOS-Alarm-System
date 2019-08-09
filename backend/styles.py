@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul  2 10:59:39 2019
+name:styles.py
 
-@author: VILAJETID
+description: Contains Draw_table and helper methods used to draw table containg 
+data
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
 """
 import pandas
 import re

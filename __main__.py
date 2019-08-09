@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jul 22 10:09:45 2019
+'''
+name:__main__.py
 
-@author: VILAJETID
-"""
+description: Program performs 'black and white' analysis on all
+incoming sos data and sends alert emails
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
+'''
 
 from structure import structure
 from db import db
@@ -108,17 +117,23 @@ def load_structures():
 
     return structures
 
-def main():
-    
+
+def load_recipients():
     database = db()
 
     SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
 
-    SPEAR = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].astype(str).to_list()
+    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].astype(str).to_list()
     
     database.close_con()
     
+    return recipients
+
+def main():
+    
     structures = load_structures()    
+    
+    SPEAR = load_recipients()
     
     finished = False
 
@@ -134,8 +149,8 @@ def main():
            test_alarm.analyze(struct.sos)
     
         print('FINISHED ANALYZING')
-
+       
 
 if __name__ == '__main__':
     main()
-        
+    
