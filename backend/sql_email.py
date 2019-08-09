@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 10 15:08:55 2019
+name:sql_email.py
 
-@author: VILAJETID
+description: Allows for execution of sp_send_dbmail
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
 """
 from db import db as database
 

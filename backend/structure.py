@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 19 15:13:08 2019
+name:structure.py
 
-@author: VILAJETID
+description: Contains structure class
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
 """
-
 from sos import sos
 
 class structure(object):

@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 15 14:07:53 2019
+name:sos.py
 
-@author: VILAJETID
+description: Contains all methods used to store and or retrive all sos info
+
+author:Daniel Vilajeti
+
+email: vilajetid@coned.com
+
+maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
+
+python-version: 2.7
 """
 
 import pandas
@@ -90,7 +98,7 @@ class sos(object):
             
             self.database.get_conn().commit()
 
-    def _get_context(self,data,FILL):
+    def _get_context(self,data,FILL = 20):
         '''
         Append a older data to the data passed so the total number of rows equals
         that specified in 'fill'.
@@ -123,5 +131,3 @@ class sos(object):
              
         else:
             return data
-           
-    
