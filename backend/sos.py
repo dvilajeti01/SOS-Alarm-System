@@ -14,10 +14,10 @@ python-version: 2.7
 """
 
 import pandas
-from db import db
+import datetime
 
 class sos(object):
-    def __init__(self,IMEINumber,SerialNo,structure_info):
+    def __init__(self,IMEINumber,SerialNo,structure_info,SQL_conn):
          
         '''
         Initializes an object of type sos
@@ -40,7 +40,7 @@ class sos(object):
         self.IMEINumber = IMEINumber
         self.SerialNo = SerialNo
         self.structure_info = structure_info
-        self.database = db()
+        self.database = SQL_conn
         
 
     def get_imein(self):
@@ -67,6 +67,7 @@ class sos(object):
         '''
         Retrives the recent unanalyzed data for this box
         '''
+        print('START....' + str(datetime.datetime.now()))
         SQL = """ SELECT DataID,MeasurementTime,Temperature,CO,Barometer
         ,Humidity,Flood,Battery,Methane,StrayVoltage 
         FROM FIS_CONED.sos.SensorData 
@@ -76,7 +77,7 @@ class sos(object):
         ORDER BY MeasurementTime DESC;"""
     
         data = pandas.read_sql(SQL,self.database.get_conn(),params = [self.IMEINumber])
-        
+        print('FINISH....' + str(datetime.datetime.now()))
         return data
     
     def _mark_as_analyzed(self,data):

@@ -28,9 +28,15 @@ class alarms(object):
         #Initializes the tests to be conducted
         #A map consisting of an alarm name as the key and a list containing 
         #the test and an optional condition as the vlaues
-        self.TESTS = {'Temperature':[['Temperature',122,'>']],
+        self.TESTS = {'Temperature':[['Temperature',122,'>=']],
                       'CO':[['CO',35,'>='],['Flood',False,'==']],
                       'StrayVoltage':[['StrayVoltage',5,'>=']]}
+    
+    def get_recipients(self):
+        return self.EMAIL.get_recipients()
+    
+    def get_tests(self):
+        return self.TESTS.copy()
     
     def check(self,tests_map,data):
         
@@ -52,7 +58,7 @@ class alarms(object):
                 
                 if CHECK[operation](data.loc[row,column],threshold):
                     try:
-                        conditional_check = self.tests_map[test][1]
+                        conditional_check = tests_map[test][1]
                         column,threshold,operation = conditional_check
                         
                     except IndexError:
@@ -69,7 +75,7 @@ class alarms(object):
                 'Humidity0': [['Humidity',0,'==']],
                 'Humidity100': [['Humidity',100,'==']],
                 'Temperature0': [['Temperature',0,'<']],
-                'Temperature264': [['Temperature',264.2,'<']],
+                'Temperature264': [['Temperature',264.2,'==']],
                 'Barometer800': [['Barometer',800,'<']],
                 'Barometer1200': [['Barometer',1200,'>']],
                 'Flood': [['Flood',True,'==']]
@@ -81,11 +87,10 @@ class alarms(object):
         
         for rows in invalids_maps.values():
             
-            for row in rows:
-                num_invalid += 1
-                
-                if num_invalid >= threshold:
-                    return False
+            num_invalid += len(rows)
+            
+            if num_invalid >= threshold:
+                return False
                 
         return True
     
@@ -104,23 +109,25 @@ class alarms(object):
         
     
     def analyze(self,sos):
-
+        
         unanalyzed_data = sos.get_unanalyzed_data()
+        #print(unanalyzed_data)
         
-        results_map = self.check(self.TESTS,unanalyzed_data)
-        
-        if len(results_map) >= 1:
-            
-            recent_readings = sos._get_context(unanalyzed_data)
-            
-            if self.is_valid_reading(recent_readings):
-                
-                imeinumber = sos.get_imein
-                serialno = sos.get_serialno
-                structure_info = sos.get_structure_info
-                
-                for test in results_map.keys():
+#        if len(unanalyzed_data) >= 1:
+#            results_map = self.check(self.TESTS,unanalyzed_data)
+#        
+#            if len(results_map) >= 1:
+#           
+#                recent_readings = sos._get_context(unanalyzed_data)
+#            
+#                if self.is_valid_reading(recent_readings):
+#                
+#                    imeinumber = sos.get_imein()
+#                    serialno = sos.get_serialno()
+#                    structure_info = sos.get_structure_info()
+#                
+#                    for test in results_map.keys():
+#                        
+#                        self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
                     
-                    self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
-                    
-        sos._mark_as_analyzed(unanalyzed_data)
+#        sos._mark_as_analyzed(unanalyzed_data)
