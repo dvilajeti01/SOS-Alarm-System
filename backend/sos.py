@@ -14,10 +14,10 @@ python-version: 2.7
 """
 
 import pandas
-import datetime
+from db import db
 
 class sos(object):
-    def __init__(self,IMEINumber,SerialNo,structure_info,SQL_conn):
+    def __init__(self,IMEINumber,SerialNo,structure_info):
          
         '''
         Initializes an object of type sos
@@ -29,7 +29,6 @@ class sos(object):
             MSPlate,Network,FacilityName,isVented(if cover of the structure is vented),
             Inspection(latest inspection of the structure) Structure info specifies info for the structure
             in which the sos box is located inside
-            self.database = connection to the database
        
         Parameters:
             
@@ -40,7 +39,6 @@ class sos(object):
         self.IMEINumber = IMEINumber
         self.SerialNo = SerialNo
         self.structure_info = structure_info
-        self.database = SQL_conn
         
 
     def get_imein(self):
@@ -67,17 +65,9 @@ class sos(object):
         '''
         Retrives the recent unanalyzed data for this box
         '''
-        print('START....' + str(datetime.datetime.now()))
-        SQL = """ SELECT DataID,MeasurementTime,Temperature,CO,Barometer
-        ,Humidity,Flood,Battery,Methane,StrayVoltage 
-        FROM FIS_CONED.sos.SensorData 
-        WHERE IMEINumber = ? 
-        AND Analyzed = 0 
-        AND MeasurementTime >= DATEADD(MONTH,-1,GETDATE()) 
-        ORDER BY MeasurementTime DESC;"""
-    
-        data = pandas.read_sql(SQL,self.database.get_conn(),params = [self.IMEINumber])
-        print('FINISH....' + str(datetime.datetime.now()))
+        
+        data = pandas.read_csv('sensordataAug-13-2019-14-HOUR.csv')
+        print(data)
         return data
     
     def _mark_as_analyzed(self,data):
@@ -88,16 +78,17 @@ class sos(object):
         Parameters:
             data, pandas.DataFrame object
         '''
+        database = db()
         
         #For every row(identified by column DataID) update Analyzed column
-        for ID in data.loc[:,'DataID']:
+        for ID in data.loc[:,'DataID']:    
             
-            self.database.get_cursor().execute(""" UPDATE FIS_CONED.sos.SensorData
+            database.get_cursor().execute(""" UPDATE FIS_CONED.sos.SensorData
                                                     SET Analyzed = 1 
                                                     WHERE IMEINumber = ?
                                                     AND DataID = ?""",(self.get_imein(),ID))
             
-            self.database.get_conn().commit()
+            database.get_conn().commit()
 
     def _get_context(self,data,FILL = 20):
         '''
@@ -115,6 +106,8 @@ class sos(object):
         
         if len(data) < FILL:
             
+            database = db()
+            
             latest_data = data.loc[:,'MeasurementTime'].max()
             
             SQL = """
@@ -126,7 +119,9 @@ class sos(object):
             ORDER BY MeasurementTime DESC;
             """ % str(FILL)
             
-            context_data = pandas.read_sql(SQL,self.database.get_conn(),params = [latest_data,self.IMEINumber])
+            context_data = pandas.read_sql(SQL,database.get_conn(),params = [latest_data,self.IMEINumber])
+            
+            database.close_con()
             
             return context_data
              

@@ -17,6 +17,8 @@ python-version: 2.7
 
 from styles import draw_table
 from sql_email import email
+from db import db
+from datetime import datetime
 
 class alarms(object):
     
@@ -53,8 +55,8 @@ class alarms(object):
             
             for test in tests_map.keys():
                 
-                flat_test = tests_map[test][0]
-                column,threshold,operation = flat_test
+                flat_check = tests_map[test][0]
+                column,threshold,operation = flat_check
                 
                 if CHECK[operation](data.loc[row,column],threshold):
                     try:
@@ -102,32 +104,51 @@ class alarms(object):
         body = '<h1 align="center">%s</h1>\n' % (alarm_type.upper() + ' Threshold Alarm')
         body += '<h2 align="center">Structure Info</h1>\n'
         body += draw_table(structure_info)
-        body += '<h2 align="center">Readings</h1>'
+        body += '<h2 align="center">Readings</h2>'
         body += draw_table(data,alarm_type,trigger_readings,'red',False)
-
+        body += """<p align="center">
+                        <a href="http://ssawebn/sos/?structure={Borough}_{MSPlate}_{StructType}_{StructNum}&show_chart=true">SOS Dash<a/>
+                   </p>""".format(Borough = structure_info.loc[:,'Borough']
+                                  ,MSPlate = structure_info.loc[:,'MSPlate']
+                                  ,StructType = structure_info.loc[:,'StructureType']
+                                  ,StructNum = structure_info.loc[:,'StructureNumber'])
+                            
         self.EMAIL.send_email(subject,body)
         
+    def record_alarm(self,alarm_type,imein,reading_start,reading_end):
+        
+        database = db()
+        
+        SQL = """INSERT INTO FIS_CONED.sos.Alarms (AlarmType,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
+                 VALUES (?,?,?,?,?)"""
+        
+        database.get_cursor().excecute(SQL,(alarm_type,datetime.now(),imein,reading_start,reading_end))
+        
+        database.get_conn().commit()
+        
+        database.close_con()
     
     def analyze(self,sos):
         
         unanalyzed_data = sos.get_unanalyzed_data()
         #print(unanalyzed_data)
         
-#        if len(unanalyzed_data) >= 1:
-#            results_map = self.check(self.TESTS,unanalyzed_data)
+#        results_map = self.check(self.TESTS,unanalyzed_data)
 #        
-#            if len(results_map) >= 1:
+#        if len(results_map) >= 1:
 #           
-#                recent_readings = sos._get_context(unanalyzed_data)
+#            recent_readings = sos._get_context(unanalyzed_data)
 #            
-#                if self.is_valid_reading(recent_readings):
+#            if self.is_valid_reading(recent_readings):
 #                
-#                    imeinumber = sos.get_imein()
-#                    serialno = sos.get_serialno()
-#                    structure_info = sos.get_structure_info()
+#                imeinumber = sos.get_imein()
+#                serialno = sos.get_serialno()
+#                structure_info = sos.get_structure_info()
+#                earliest_measurement = recent_readings.loc[-1,'MeasurementTime']
+#                latest_measurement = recent_readings.loc[0,'MeasurementTime']
 #                
-#                    for test in results_map.keys():
-#                        
-#                        self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
-                    
-#        sos._mark_as_analyzed(unanalyzed_data)
+#                for test in results_map.keys():
+#                    self.record_alarm(test,imeinumber,latest_measurement,earliest_measurement)
+#                    self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
+#                
+        #sos._mark_as_analyzed(unanalyzed_data)
