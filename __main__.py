@@ -14,16 +14,17 @@ maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
 python-version: 2.7
 '''
 
-from sos import sos
+from structure import structure
 from db import db
 import pandas
 from alarm import alarms
+from sos import sos
 
-def load_structures(SQL_db):
+def load_structures():
     #Retrieves all sos boxes that have sent data in the past month
     #and their structure info
     
-    database = SQL_db
+    database = db()
     
     SQL = """SELECT IMEINumber
                     ,SerialNo
@@ -40,8 +41,10 @@ def load_structures(SQL_db):
     #Contains query results
     data = pandas.read_sql(SQL,database.get_conn())
 
+    database.close_con()
+    
     #List of objects of type structure
-    structures = []
+    sos_boxes = []
 
     print('Loading Structures...') 
 
@@ -51,33 +54,30 @@ def load_structures(SQL_db):
         serial = row[1]
         structure_info = row[2:]
         
-        structures.append(sos(imein,serial,structure_info,database))
+        sos_boxes.append(sos(imein,serial,structure_info))
                 
-    print('%s Structures Loaded!' % str(len(structures)))
+    print('%s Structures Loaded!' % str(len(sos_boxes)))
 
-    return structures
+    return sos_boxes
 
 
-def load_recipients(SQL_db):
-    
-#    database = SQL_db
+def load_recipients():
+#    database = db()
 #
 #    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
 #
 #    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].astype(str).to_list()
 #    
+#    database.close_con()
+#    
 #    return recipients
-    
     return ['vilajetid@coned.com']
 
 def main():
     
-    SQL_db = db()
+    sos_boxes = load_structures()    
     
-    structures = load_structures(SQL_db)    
-    
-    
-    SPEAR = load_recipients(SQL_db)
+    SPEAR = load_recipients()
     
     finished = False
 
@@ -88,13 +88,14 @@ def main():
         
         print('ANALYZING DATA...')    
         #For every structure analyze the sos data
-        for struct in structures:
+        i = 0
+        for sos_box in sos_boxes:
             
-           test_alarm.analyze(struct)
-    
+           test_alarm.analyze(sos_box)
+           i += 1
+           print(i)
         print('FINISHED ANALYZING')
-        finished = True
-    SQL_db.close_con()
+       
 
 if __name__ == '__main__':
     main()
