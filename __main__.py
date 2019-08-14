@@ -20,11 +20,11 @@ import pandas
 from alarm import alarms
 from sos import sos
 
-def load_structures():
+def load_sos_boxes():
     #Retrieves all sos boxes that have sent data in the past month
     #and their structure info
     
-    database = db()
+    database = db(to_str = True)
     
     SQL = """SELECT IMEINumber
                     ,SerialNo
@@ -62,23 +62,23 @@ def load_structures():
 
 
 def load_recipients():
-#    database = db()
-#
-#    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
-#
-#    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].astype(str).to_list()
-#    
-#    database.close_con()
-#    
-#    return recipients
-    return ['vilajetid@coned.com']
+    database = db(to_str = True)
+
+    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
+
+    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
+    
+    database.close_con()
+    
+    return recipients
+    
 
 def main():
     
-    sos_boxes = load_structures()    
+    sos_boxes = load_sos_boxes()    
     
     SPEAR = load_recipients()
-    
+
     finished = False
 
     #Create alarm object
@@ -87,13 +87,13 @@ def main():
     while not finished:
         
         print('ANALYZING DATA...')    
+        
         #For every structure analyze the sos data
-        i = 0
         for sos_box in sos_boxes:
             
            test_alarm.analyze(sos_box)
-           i += 1
-           print(i)
+
+        finished = True
         print('FINISHED ANALYZING')
        
 
