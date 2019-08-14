@@ -1,1 +1,0 @@
-ODBC Driver 13 for SQL Server,disengsqlpr1,FIS_CONED,netstorm_ro,netstorm_ro
