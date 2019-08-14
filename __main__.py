@@ -14,7 +14,6 @@ maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
 python-version: 2.7
 '''
 
-from structure import structure
 from db import db
 import pandas
 from alarm import alarms
@@ -62,19 +61,17 @@ def load_sos_boxes():
 
 
 def load_recipients():
-#    database = db(to_str = True)
-#
-#    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
-#
-#    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
-#    
-#    database.close_con()
-#    
-#    return recipients
-    
-    return ['vilajetid@coned.com']
-    
+    database = db(to_str = True)
 
+    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
+
+    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
+    
+    database.close_con()
+    
+    return recipients
+
+    
 def main():
     
     sos_boxes = load_sos_boxes()    

@@ -13,7 +13,6 @@ maintained by: Daniel Vilajeti,Steven Barrios(barrioss@coned.com)
 python-version: 2.7
 """
 import pyodbc
-import pandas
 
 class db(object):
     
