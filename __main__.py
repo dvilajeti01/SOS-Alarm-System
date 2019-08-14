@@ -61,22 +61,24 @@ def load_sos_boxes():
 
 
 def load_recipients():
+
     database = db(to_str = True)
 
     SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
 
     recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
+
     
     database.close_con()
     
     return recipients
 
-    
 def main():
     
     sos_boxes = load_sos_boxes()    
     
     SPEAR = load_recipients()
+
 
     finished = False
 
@@ -89,10 +91,11 @@ def main():
         
         #For every structure analyze the sos data
         for sos_box in sos_boxes:
-            
+
            test_alarm.analyze(sos_box)
 
         finished = True
+
         print('FINISHED ANALYZING')
        
 
