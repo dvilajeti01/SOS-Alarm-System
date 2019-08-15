@@ -19,6 +19,7 @@ from styles import draw_table
 from sql_email import email
 from db import db
 from datetime import datetime
+import pandas
 
 class alarms(object):
     
@@ -30,16 +31,59 @@ class alarms(object):
         #Initializes the tests to be conducted
         #A map consisting of an alarm name as the key and a list containing 
         #the test and an optional condition as the vlaues
-        self.TESTS = {'Temperature':[['Temperature',122,'>=']],
-                      'CO':[['CO',35,'>='],['Flood',False,'==']],
-                      'StrayVoltage':[['StrayVoltage',5,'>=']]}
-    
+#        self.TESTS = {'Temperature':[['Temperature',122,'>=']],
+#                      'CO':[['CO',35,'>='],['Flood',False,'==']],
+#                      'StrayVoltage':[['StrayVoltage',5,'>=']]}
+#        
+        self.constraints = self.load_constraints()
+        self.tests = self.load_tests()
+        
     def get_recipients(self):
         return self.EMAIL.get_recipients()
     
     def get_tests(self):
         return self.TESTS.copy()
-
+    
+    def add_test(self):
+        pass
+    
+    def add_constraint(self):
+        pass
+    
+    def load_tests(self):
+         database = db(to_str = True)
+         
+         SQL = """SELECT A.AlarmType
+                        ,A.Id
+	                    ,A.Name
+                        ,T.TestType
+	                    ,T.ColumnCheck
+	                    ,T.Threshold
+	                    ,T.Operation
+	                    ,T.Rate 
+                  FROM FIS_CONED.sos.AlarmTypes AS A
+                  INNER JOIN FIS_CONED.sos.TestTypes as T
+                  ON A.Id = T.AlarmId;"""
+    
+        tests_df = pandas.read_sql(SQL,database.get_conn())
+        
+        database.close_conn()
+        
+        self.tests = {}
+        
+        for row in range(len(tests_df)):
+            alarm_type = tests_df.loc[row,'AlarmType']
+            alarm_id =  tests_df.loc[row,'Id']
+            alarm_name = tests_df.loc[row,'Name']
+            test_type = tests_df.loc[row,'TestType']
+            column = tests_df.loc[row,'ColumnCheck']
+            threshold = tests_df.loc[row,'Threshold']
+            
+            if threshold.
+            operation = tests_df.loc[row,'Operation']
+            rate = tests_df.loc[row,'Rate']
+            
+            
     def check(self,tests_map,data):
         
         CHECK = {'==': lambda reading,threshold: True if reading == threshold else False,
@@ -73,17 +117,7 @@ class alarms(object):
     
     def is_valid_reading(self,data,threshold = 8):
 
-        CONSTRAINTS = {
-                'Humidity0': [['Humidity',0,'==']],
-                'Humidity100': [['Humidity',100,'==']],
-                'Temperature0': [['Temperature',0,'<']],
-                'Temperature264': [['Temperature',264.2,'==']],
-                'Barometer800': [['Barometer',800,'<']],
-                'Barometer1200': [['Barometer',1200,'>']],
-                'Flood': [['Flood',True,'==']]
-                }
-        
-        invalids_maps = self.check(CONSTRAINTS,data)
+        invalids_maps = self.check(self.constraints,data)
         
         num_invalid = 0
         
@@ -124,7 +158,7 @@ class alarms(object):
         database.get_cursor().execute(SQL,(alarm_type,datetime.now(),imein,reading_start,reading_end))
         database.get_conn().commit()
         
-        database.close_con()
+        database.close_conn()
     
     def analyze(self,sos):
         
@@ -132,7 +166,7 @@ class alarms(object):
         
         if not unanalyzed_data.empty:
             
-            results_map = self.check(self.TESTS,unanalyzed_data)
+            results_map = self.check(self.tests,unanalyzed_data)
         
             if results_map:
            
