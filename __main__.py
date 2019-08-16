@@ -94,8 +94,6 @@ def main():
 
            test_alarm.analyze(sos_box)
 
-        finished = True
-
         print('FINISHED ANALYZING')
        
 
