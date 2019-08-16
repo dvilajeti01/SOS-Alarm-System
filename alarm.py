@@ -27,49 +27,40 @@ class alarms(object):
 
         #Create instance of email with recipients
         self.EMAIL = email(recipients)
-    
-        #Initializes the tests to be conducted
-        #A map consisting of an alarm name as the key and a list containing 
-        #the test and an optional condition as the vlaues
-#        self.TESTS = {'Temperature':[['Temperature',122,'>=']],
-#                      'CO':[['CO',35,'>='],['Flood',False,'==']],
-#                      'StrayVoltage':[['StrayVoltage',5,'>=']]}
-#        
-        self.constraints = self.load_constraints()
+
         self.tests = self.load_tests()
         
     def get_recipients(self):
         return self.EMAIL.get_recipients()
     
     def get_tests(self):
-        return self.TESTS.copy()
+        return self.tests.copy()
     
     def add_test(self):
         pass
     
-    def add_constraint(self):
-        pass
-    
     def load_tests(self):
-         database = db(to_str = True)
          
-         SQL = """SELECT A.AlarmType
-                        ,A.Id
-	                    ,A.Name
-                        ,T.TestType
-	                    ,T.ColumnCheck
-	                    ,T.Threshold
-	                    ,T.Operation
-	                    ,T.Rate 
-                  FROM FIS_CONED.sos.AlarmTypes AS A
-                  INNER JOIN FIS_CONED.sos.TestTypes as T
-                  ON A.Id = T.AlarmId;"""
-    
+        database = db(to_str = True)
+         
+        SQL = """SELECT A.AlarmType
+                       ,A.Id
+                       ,A.Name
+                       ,T.TestType
+	                   ,T.ColumnCheck
+	                   ,T.Threshold
+	                   ,T.Operation
+	                   ,T.Rate 
+                 FROM FIS_CONED.sos.AlarmTypes AS A
+                 INNER JOIN FIS_CONED.sos.TestTypes as T
+                 ON A.Id = T.AlarmId;"""
+
         tests_df = pandas.read_sql(SQL,database.get_conn())
+        
         
         database.close_conn()
         
-        self.tests = {}
+        tests = {}
         
         for row in range(len(tests_df)):
             alarm_type = tests_df.loc[row,'AlarmType']
@@ -77,12 +68,23 @@ class alarms(object):
             alarm_name = tests_df.loc[row,'Name']
             test_type = tests_df.loc[row,'TestType']
             column = tests_df.loc[row,'ColumnCheck']
-            threshold = tests_df.loc[row,'Threshold']
             
-            if threshold.
+            try:
+                threshold = float(tests_df.loc[row,'Threshold'])
+            except ValueError:
+                threshold = tests_df.loc[row,'Threshold']
+            
             operation = tests_df.loc[row,'Operation']
             rate = tests_df.loc[row,'Rate']
             
+            tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(column)
+            tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(threshold)
+            tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(operation)
+            
+            if test_type == 'Rate':
+                tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(rate)
+        
+        return tests
             
     def check(self,tests_map,data):
         
@@ -97,27 +99,29 @@ class alarms(object):
         
         for row in range(len(data)):
             
-            for test in tests_map.keys():
+            for test_id,test in tests_map.keys():
                 
-                main_check = tests_map[test][0]
+                main_check = tests_map[(test_id,test)]['Main']
                 column,threshold,operation = main_check
                 
                 if CHECK[operation](data.loc[row,column],threshold):
                     try:
-                        conditional_check = tests_map[test][1]
+                        conditional_check = tests_map[(test_id,test)]['Conditional']
                         column,threshold,operation = conditional_check
                         
-                    except IndexError:
-                        results_map.setdefault(test,[]).append(row)
+                    except KeyError:
+                        results_map.setdefault((test_id,test),[]).append(row)
                     
                     else:
                         if CHECK[operation](data.loc[row,column],threshold):
-                            results_map.setdefault(test,[]).append(row)
+                            results_map.setdefault((test_id,test),[]).append(row)
         return results_map
     
     def is_valid_reading(self,data,threshold = 8):
 
-        invalids_maps = self.check(self.constraints,data)
+        constraints = self.tests['Constraint']
+        
+        invalids_maps = self.check(constraints,data)
         
         num_invalid = 0
         
@@ -149,13 +153,13 @@ class alarms(object):
                             
         self.EMAIL.send_email(subject,body)
         
-    def record_alarm(self,alarm_type,imein,reading_start,reading_end):
+    def record_alarm(self,alarm_id,alarm_type,imein,reading_start,reading_end):
         
         database = db()
         
-        SQL = """INSERT INTO FIS_CONED.sos.Alarms (AlarmType,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
-                 VALUES (?,?,?,?,?)"""
-        database.get_cursor().execute(SQL,(alarm_type,datetime.now(),imein,reading_start,reading_end))
+        SQL = """INSERT INTO FIS_CONED.sos.Alarms (Alarm_ID,AlarmType,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
+                 VALUES (?,?,?,?,?,?)"""
+        database.get_cursor().execute(SQL,(alarm_id,alarm_type,datetime.now(),imein,reading_start,reading_end))
         database.get_conn().commit()
         
         database.close_conn()
@@ -166,7 +170,7 @@ class alarms(object):
         
         if not unanalyzed_data.empty:
             
-            results_map = self.check(self.tests,unanalyzed_data)
+            results_map = self.check(self.tests['Flat'],unanalyzed_data)
         
             if results_map:
            
@@ -180,8 +184,10 @@ class alarms(object):
                     earliest_measurement = recent_readings.loc[len(recent_readings)-1,'MeasurementTime']
                     latest_measurement = recent_readings.loc[0,'MeasurementTime']
                     
-                    for test in results_map.keys():
-                        #self.record_alarm(test,imeinumber,latest_measurement,earliest_measurement)
+                    for test_id,test in results_map.keys():
+                        self.record_alarm(test_id,test,imeinumber,latest_measurement,earliest_measurement)
                         self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
                 
-        sos._mark_as_analyzed(unanalyzed_data)
+        #sos._mark_as_analyzed(unanalyzed_data)
+        
+        

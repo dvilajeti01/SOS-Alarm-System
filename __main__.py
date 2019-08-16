@@ -61,15 +61,16 @@ def load_sos_boxes():
 
 
 def load_recipients():
-    database = db(to_str = True)
-
-    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
-
-    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
-    
-    database.close_conn()
-    
-    return recipients
+#    database = db(to_str = True)
+#
+#    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
+#
+#    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
+#    
+#    database.close_conn()
+#    
+#    return recipients
+    return ['vilajetid@coned.com']
 
     
 def main():
@@ -82,6 +83,7 @@ def main():
 
     #Create alarm object
     test_alarm = alarms(SPEAR) #DRAW FROM sos.Users
+    
     
     while not finished:
         
