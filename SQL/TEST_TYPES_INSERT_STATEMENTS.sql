@@ -1,0 +1,13 @@
+INSERT INTO FIS_CONED.sos.TestTypes(AlarmID,TestType,ColumnCheck,Operation,Threshold,Rate)
+VALUES
+		(1,'Main','Temperature','>=','122',0)
+	   ,(2,'Main','CO','>=','35',0)
+	   ,(2,'Conditional','Flood','==','False',0)
+	   ,(3,'Main','StrayVoltage','>=','5',0)
+	   ,(4,'Main','Humidity','==','0',0)
+	   ,(5,'Main','Humidity','==','100',0)
+	   ,(6,'Main','Temperature','<','0',0)
+	   ,(7,'Main','Humidity','==','264.2',0)
+	   ,(8,'Main','Barometer','<','800',0)
+	   ,(9,'Main','Barometer','>','1200',0)
+	   ,(10,'Main','Flood','==','True',0)
