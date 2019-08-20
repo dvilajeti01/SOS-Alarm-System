@@ -61,16 +61,15 @@ def load_sos_boxes():
 
 
 def load_recipients():
-#    database = db(to_str = True)
-#
-#    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
-#
-#    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
-#    
-#    database.close_conn()
-#    
-#    return recipients
-    return ['vilajetid@coned.com']
+    database = db(to_str = True)
+
+    SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
+
+    recipients = pandas.read_sql(SQL,database.get_conn()).loc[:,'Email'].to_list()
+    
+    database.close_conn()
+    
+    return recipients
 
     
 def main():

@@ -151,7 +151,7 @@ class alarms(object):
         
         database = db()
         
-        SQL = """INSERT INTO FIS_CONED.sos.AlarmsTEST (AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
+        SQL = """INSERT INTO FIS_CONED.sos.Alarms (AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
                  VALUES (?,?,?,?,?)"""
         database.get_cursor().execute(SQL,(alarm_id,datetime.now(),imein,reading_start,reading_end))
         database.get_conn().commit()
@@ -182,6 +182,6 @@ class alarms(object):
                         self.record_alarm(test_id,test,imeinumber,latest_measurement,earliest_measurement)
                         self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test_id,test])
                 
-        #sos._mark_as_analyzed(unanalyzed_data)
+        sos._mark_as_analyzed(unanalyzed_data)
         
         
