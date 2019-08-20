@@ -35,10 +35,7 @@ class alarms(object):
     
     def get_tests(self):
         return self.tests.copy()
-    
-    def add_test(self):
-        pass
-    
+
     def load_tests(self):
          
         database = db(to_str = True)
@@ -80,7 +77,8 @@ class alarms(object):
                  '<': lambda reading,threshold: True if reading < threshold else False,
                  '>': lambda reading,threshold: True if reading > threshold else False,
                  '<=': lambda reading,threshold: True if reading <= threshold else False,
-                 '>=': lambda reading,threshold: True if reading >= threshold else False
+                 '>=': lambda reading,threshold: True if reading >= threshold else False,
+                 '!=': lambda reading,threshold: True if reading != threshold else False
         } 
         
         results_map = {}
