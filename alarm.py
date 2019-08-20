@@ -43,20 +43,9 @@ class alarms(object):
          
         database = db(to_str = True)
          
-        SQL = """SELECT A.AlarmType
-                       ,A.Id
-                       ,A.Name
-                       ,T.TestType
-	                   ,T.ColumnCheck
-	                   ,T.Threshold
-	                   ,T.Operation
-	                   ,T.Rate 
-                 FROM FIS_CONED.sos.AlarmTypes AS A
-                 INNER JOIN FIS_CONED.sos.TestTypes as T
-                 ON A.Id = T.AlarmId;"""
+        SQL = """SELECT * FROM FIS_CONED.sos.Tests;"""
 
         tests_df = pandas.read_sql(SQL,database.get_conn())
-        
         
         database.close_conn()
         
@@ -64,10 +53,11 @@ class alarms(object):
         
         for row in range(len(tests_df)):
             alarm_type = tests_df.loc[row,'AlarmType']
-            alarm_id =  tests_df.loc[row,'Id']
+            alarm_id =  str(tests_df.loc[row,'ID'])
             alarm_name = tests_df.loc[row,'Name']
             test_type = tests_df.loc[row,'TestType']
             column = tests_df.loc[row,'ColumnCheck']
+
             
             try:
                 threshold = float(tests_df.loc[row,'Threshold'])
@@ -75,14 +65,12 @@ class alarms(object):
                 threshold = tests_df.loc[row,'Threshold']
             
             operation = tests_df.loc[row,'Operation']
-            rate = tests_df.loc[row,'Rate']
+            rate = float(tests_df.loc[row,'Rate'])
             
             tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(column)
             tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(threshold)
             tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(operation)
-            
-            if test_type == 'Rate':
-                tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(rate)
+            tests.setdefault(alarm_type,{}).setdefault((alarm_id,alarm_name),{}).setdefault(test_type,[]).append(rate)
         
         return tests
             
@@ -102,19 +90,25 @@ class alarms(object):
             for test_id,test in tests_map.keys():
                 
                 main_check = tests_map[(test_id,test)]['Main']
-                column,threshold,operation = main_check
+                column,threshold,operation,rate = main_check
                 
-                if CHECK[operation](data.loc[row,column],threshold):
-                    try:
-                        conditional_check = tests_map[(test_id,test)]['Conditional']
-                        column,threshold,operation = conditional_check
-                        
-                    except KeyError:
-                        results_map.setdefault((test_id,test),[]).append(row)
-                    
-                    else:
-                        if CHECK[operation](data.loc[row,column],threshold):
+                if rate == 0:
+                
+                    if CHECK[operation](data.loc[row,column],threshold):
+                        try:
+                            conditional_check = tests_map[(test_id,test)]['Conditional']
+                            column,threshold,operation,rate = conditional_check
+                            
+                        except KeyError:
                             results_map.setdefault((test_id,test),[]).append(row)
+                            
+                        else:
+                            if CHECK[operation](data.loc[row,column],threshold):
+                                results_map.setdefault((test_id,test),[]).append(row)
+                else:
+                    #PERFROM RATE CHECK
+                    pass
+        
         return results_map
     
     def is_valid_reading(self,data,threshold = 8):
@@ -157,9 +151,9 @@ class alarms(object):
         
         database = db()
         
-        SQL = """INSERT INTO FIS_CONED.sos.Alarms (Alarm_ID,AlarmType,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
-                 VALUES (?,?,?,?,?,?)"""
-        database.get_cursor().execute(SQL,(alarm_id,alarm_type,datetime.now(),imein,reading_start,reading_end))
+        SQL = """INSERT INTO FIS_CONED.sos.AlarmsTEST (AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
+                 VALUES (?,?,?,?,?)"""
+        database.get_cursor().execute(SQL,(alarm_id,datetime.now(),imein,reading_start,reading_end))
         database.get_conn().commit()
         
         database.close_conn()
@@ -181,12 +175,12 @@ class alarms(object):
                     imeinumber = sos.get_imein()
                     serialno = sos.get_serialno()
                     structure_info = sos.get_structure_info()
-                    earliest_measurement = recent_readings.loc[len(recent_readings)-1,'MeasurementTime']
-                    latest_measurement = recent_readings.loc[0,'MeasurementTime']
+                    earliest_measurement = str(recent_readings.loc[len(recent_readings)-1,'MeasurementTime'])
+                    latest_measurement = str(recent_readings.loc[0,'MeasurementTime'])
                     
                     for test_id,test in results_map.keys():
                         self.record_alarm(test_id,test,imeinumber,latest_measurement,earliest_measurement)
-                        self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test])
+                        self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test_id,test])
                 
         #sos._mark_as_analyzed(unanalyzed_data)
         

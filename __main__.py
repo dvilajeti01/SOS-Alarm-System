@@ -84,7 +84,6 @@ def main():
     #Create alarm object
     test_alarm = alarms(SPEAR) #DRAW FROM sos.Users
     
-    
     while not finished:
         
         print('ANALYZING DATA...')    
@@ -101,3 +100,5 @@ def main():
 if __name__ == '__main__':
     main()
     
+
+
