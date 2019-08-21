@@ -78,7 +78,7 @@ class sos(object):
     
         data = pandas.read_sql(SQL,database.get_conn(),params = [self.IMEINumber])
         
-        database.close_con()
+        database.close_conn()
         
         return data
     
@@ -102,7 +102,7 @@ class sos(object):
             
             database.get_conn().commit()
 
-        database.close_con()
+        database.close_conn()
         
     def _get_context(self,data,FILL = 20):
         '''
@@ -135,7 +135,7 @@ class sos(object):
             
             context_data = pandas.read_sql(SQL,database.get_conn(),params = [latest_data,self.IMEINumber])
             
-            database.close_con()
+            database.close_conn()
             
             return context_data
              

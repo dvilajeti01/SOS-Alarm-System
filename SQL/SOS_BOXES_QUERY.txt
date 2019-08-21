@@ -172,7 +172,3 @@ AND GOOD_BOXES_WITH_INSPECTION.StructureType = VDC_Inspection.AssetType
 AND GOOD_BOXES_WITH_INSPECTION.FacilityKey = VDC_Inspection.FacilityKey
 AND GOOD_BOXES_WITH_INSPECTION.StructureNumber = VDC_Inspection.AssetNumber;
 
-/*
-EXEC FIS_CONED.sos.AlarmSystemMK1;
-EXEC FIS_CONED.sos.AlarmSystemMK2;
-*/

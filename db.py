@@ -61,7 +61,7 @@ class db(object):
         '''
         return self.cursor
 
-    def close_con(self):
+    def close_conn(self):
         '''
         Close connection to avoid interference with other connections
         '''
