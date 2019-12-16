@@ -20,9 +20,15 @@ from alarm import alarms
 from sos import sos
 
 def load_sos_boxes():
-    #Retrieves all sos boxes that have sent data in the past month
-    #and their structure info
+    '''
+    Retrieves all sos boxes still *functioning. It returns a list of sos 
+    objects. See sos class documentation for more info on the sos objects.
     
+    *Functioning boxes are categorized as all boxes that have sent info in the
+    last month. See SQl query for more detail.
+    '''
+    
+    #Creates connection to sql server
     database = db(to_str = True)
     
     SQL = """SELECT IMEINumber
@@ -61,6 +67,12 @@ def load_sos_boxes():
 
 
 def load_recipients():
+    
+    '''
+    Retrieves all members of the team which will recieve the emails.
+    Returns list of emails from the list of members the emails are sent to.
+    '''
+    
     database = db(to_str = True)
 
     SQL = """ SELECT * FROM FIS_CONED.sos.Users"""
@@ -70,8 +82,8 @@ def load_recipients():
     database.close_conn()
     
     return recipients
-
     
+
 def main():
     
     sos_boxes = load_sos_boxes()    
@@ -81,8 +93,8 @@ def main():
     finished = False
 
     #Create alarm object
-    test_alarm = alarms(SPEAR) #DRAW FROM sos.Users
-    
+    test_alarm = alarms(SPEAR) 
+        
     while not finished:
         
         print('ANALYZING DATA...')    
@@ -92,8 +104,7 @@ def main():
             
            test_alarm.analyze(sos_box)
 
-           #finished = True
-            
+        #finished = True
         print('FINISHED ANALYZING')
        
 
