@@ -23,15 +23,41 @@ import pandas
 
 class alarms(object):
     
-    def __init__(self,recipients):
+    def __init__(self,recipients,tests = None,constraints = None, disable_constraints = False):
+        '''
+        Initializes an object of type alarms
+            
+        Class Attributes:
+            self.email
+            self.tests
+            self.constraints
+        
+        '''
 
         #Create instance of email with recipients
-        self.EMAIL = email(recipients)
+        self.email = email(recipients)
 
-        self.tests = self.load_tests()
+        if tests:
+            self.tests = tests
+        else:
+            self.tests = self.load_tests()
+            
+        if not disable_constraints:
+            
+            if constraints:
+                self.constraints = constraints
+            else:
+                try:
+                    self.constraints = self.tests['Constraint']
+                except KeyError:
+                    print('There are no constraints in the loaded tests')
+                    self.constraints = {}
+
+        else:
+            self.constraints = {}
         
     def get_recipients(self):
-        return self.EMAIL.get_recipients()
+        return self.email.get_recipients()
     
     def get_tests(self):
         return self.tests.copy()
@@ -87,22 +113,25 @@ class alarms(object):
             
             for test_id,test in tests_map.keys():
                 
+                
                 main_check = tests_map[(test_id,test)]['Main']
                 column,threshold,operation,rate = main_check
                 
                 if rate == 0:
                 
                     if CHECK[operation](data.loc[row,column],threshold):
+
                         try:
                             conditional_check = tests_map[(test_id,test)]['Conditional']
                             column,threshold,operation,rate = conditional_check
                             
+                            if CHECK[operation](data.loc[row,column],threshold):
+                                
+                                results_map.setdefault((test_id,test),[]).append(row)
+                            
                         except KeyError:
                             results_map.setdefault((test_id,test),[]).append(row)
-                            
-                        else:
-                            if CHECK[operation](data.loc[row,column],threshold):
-                                results_map.setdefault((test_id,test),[]).append(row)
+
                 else:
                     #PERFROM RATE CHECK
                     pass
@@ -111,13 +140,13 @@ class alarms(object):
     
     def is_valid_reading(self,data,threshold = 8):
 
-        constraints = self.tests['Constraint']
+        constraints = self.constraints
         
-        invalids_maps = self.check(constraints,data)
+        invalids_map = self.check(constraints,data)
         
         num_invalid = 0
         
-        for rows in invalids_maps.values():
+        for rows in invalids_map.values():
             
             num_invalid += len(rows)
             
@@ -143,33 +172,33 @@ class alarms(object):
                                   ,StructType = structure_info.loc[0,'StructureType']
                                   ,StructNum = structure_info.loc[0,'StructureNumber'])
                             
-        self.EMAIL.send_email(subject,body)
+        self.email.send_email(subject,body)
         
     def record_alarm(self,alarm_id,alarm_type,imein,reading_start,reading_end):
         
         database = db()
         
-        SQL = """INSERT INTO FIS_CONED.sos.Alarms (AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
+        SQL = """INSERT INTO FIS_CONED.sos.Alarms(AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
                  VALUES (?,?,?,?,?)"""
         database.get_cursor().execute(SQL,(alarm_id,datetime.now(),imein,reading_start,reading_end))
         database.get_conn().commit()
         
         database.close_conn()
     
-    def analyze(self,sos):
+    def analyze(self,sos,mark_as_unanalyzed = True):
         
         unanalyzed_data = sos.get_unanalyzed_data()
-        
+                
         if not unanalyzed_data.empty:
             
             results_map = self.check(self.tests['Flat'],unanalyzed_data)
-        
+
             if results_map:
            
                 recent_readings = sos._get_context(unanalyzed_data)
-            
+
                 if self.is_valid_reading(recent_readings):
-                
+
                     imeinumber = sos.get_imein()
                     serialno = sos.get_serialno()
                     structure_info = sos.get_structure_info()
@@ -179,7 +208,11 @@ class alarms(object):
                     for test_id,test in results_map.keys():
                         self.record_alarm(test_id,test,imeinumber,latest_measurement,earliest_measurement)
                         self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test_id,test])
+        
+            results_map.clear()
+        
+        if mark_as_unanalyzed:
                 
-        sos._mark_as_analyzed(unanalyzed_data)
+            sos._mark_as_analyzed(unanalyzed_data)
         
         
