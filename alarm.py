@@ -28,9 +28,19 @@ class alarms(object):
         Initializes an object of type alarms
             
         Class Attributes:
-            self.email
-            self.tests
-            self.constraints
+            self.email is an object of the email class. This allows the alarms to be sent to the team
+            using the SQL Stored Procedure. Look at the sql_email class for more
+            self.tests a mapping of different tests to be conducted on the sos data*
+            self.constraints a mapping of constraints that invalidate or validate sos data*
+            
+        Parameters:
+            recipients: list, a list of recipient emails
+            tests: dict, (optional)a mapping of tests* 
+            constraints: dict, (optional)a mapping of data constraints*
+            disable_constraints: bool, signifies wether to consider data constraints or not. False by default,
+            setting to True may result in excessive emails
+            
+            *See Readme for more info
         
         '''
 
@@ -57,13 +67,25 @@ class alarms(object):
             self.constraints = {}
         
     def get_recipients(self):
+        '''
+        Retrieves the list of recipients stored in SQL Server.
+        Returns a list of strings
+        '''
         return self.email.get_recipients()
     
     def get_tests(self):
+        '''
+        Retrieves tests stored in SQL Server
+        '''
         return self.tests.copy()
 
     def load_tests(self):
-         
+        '''
+        Retrieves all tests stored in sql.
+        Returns a dict of tests.
+        
+        See Readme for dict structure.
+        '''
         database = db(to_str = True)
          
         SQL = """SELECT * FROM FIS_CONED.sos.Tests;"""
@@ -98,7 +120,19 @@ class alarms(object):
         return tests
             
     def check(self,tests_map,data):
+        '''
+        The check function runs the direct analysis on the sos data.
         
+        Parameters:
+            tests_map, dict: A mapping of the tests
+            data, pandas.datframe: The table to be analyzed
+            
+        Returns:
+            results_map, dict: A mapping of the test that triggered the alarm and the row which contains
+            the data that triggered the alarm
+        '''
+        
+        #A mapping between the operation and equivalent lambda function that performs the operation
         CHECK = {'==': lambda reading,threshold: True if reading == threshold else False,
                  '<': lambda reading,threshold: True if reading < threshold else False,
                  '>': lambda reading,threshold: True if reading > threshold else False,
@@ -109,8 +143,10 @@ class alarms(object):
         
         results_map = {}
         
+        #For every row in the table
         for row in range(len(data)):
             
+            #Check data in row against every test
             for test_id,test in tests_map.keys():
                 
                 
@@ -119,14 +155,17 @@ class alarms(object):
                 
                 if rate == 0:
                 
+                    #If the main check returned true
                     if CHECK[operation](data.loc[row,column],threshold):
 
+                        #Check conditional test
                         try:
                             conditional_check = tests_map[(test_id,test)]['Conditional']
                             column,threshold,operation,rate = conditional_check
                             
                             if CHECK[operation](data.loc[row,column],threshold):
-                                
+                                #In the case that both main and conditional tests return true
+                                #append instanceto the results_map
                                 results_map.setdefault((test_id,test),[]).append(row)
                             
                         except KeyError:
@@ -140,6 +179,16 @@ class alarms(object):
     
     def is_valid_reading(self,data,threshold = 8):
 
+        '''
+        Checks if a given set of data is valid or invlaid
+        
+         Parameters:
+            data, pandas.datframe: The table to be analyzed
+            threshold, int: Number of invalid readings that classify an invalid data table
+            default set to 8
+        Returns:
+            bool: True signifies valid data false signifies invalid
+        '''
         constraints = self.constraints
         
         invalids_map = self.check(constraints,data)
@@ -156,7 +205,18 @@ class alarms(object):
         return True
     
     def trigger_alarm(self,data,alarm_type,imeinumber,serialno,structure_info,trigger_readings = []):
+        '''
+        Builds the email to be sent out to team
         
+         Parameters:
+            data, pandas.datframe: The table to be analyzed
+            alarm_type, str: the alarm type that has been triggered
+            imeinumber, str: unique identifier of the sos box
+            serialno, str: serial number of the box
+            structure_info, pandas.dataframe: Contains structure_info of the sos box
+            trigger_readings, list: list of rows which triggered alarm
+            
+        '''
         print('sending email...')
         subject = alarm_type.upper() + ' Alarm Notification--' + imeinumber + '--' + serialno
         
@@ -165,6 +225,8 @@ class alarms(object):
         body += draw_table(structure_info)
         body += '<h2 align="center">Readings</h2>'
         body += draw_table(data,alarm_type,trigger_readings,'red',False)
+        
+        #Append link to sos dash board
         body += """<p align="center">
                         <a href="http://ssawebn/sos/?structure={Borough}_{MSPlate}_{StructType}_{StructNum}&show_chart=true">SOS Dash<a/>
                    </p>""".format(Borough = structure_info.loc[0,'Borough']
@@ -175,7 +237,18 @@ class alarms(object):
         self.email.send_email(subject,body)
         
     def record_alarm(self,alarm_id,alarm_type,imein,reading_start,reading_end):
+        '''
+        Stores alarm triggered by saving box and alarm info as well as the first and last
+        readings so one can recreate the alarm later
         
+         Parameters:
+            alarm_id, str: The alarm id
+            alarm_type, str: The alarm type
+            imein, str: unique identifier of the sos box
+            reading_start, str: The measurement time of the first reading
+            reading_end, str: The measurement time of the last reading
+
+        '''
         database = db()
         
         SQL = """INSERT INTO FIS_CONED.sos.Alarms(AlarmID,DateCreated,IMEINumber,ReadingsStart,ReadingsEnd)
@@ -186,7 +259,12 @@ class alarms(object):
         database.close_conn()
     
     def analyze(self,sos,mark_as_unanalyzed = True):
-        
+        '''
+         Parameters:
+            sos, sos: Instance of the sos box to be analyzed
+            mark_as_unanalyzed, bool: Determines if analyzed data gets marked as analyzed or not.
+
+        '''
         unanalyzed_data = sos.get_unanalyzed_data()
                 
         if not unanalyzed_data.empty:
