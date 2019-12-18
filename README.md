@@ -41,7 +41,9 @@ The alarm system may look complicated at first glance due to all the files in th
 
 The alarm system is mainly comprised of four classes named alarm, sos, sql_email, and db. Each class is implemented in the corresponding file. Ex. alarm class implementation belongs inside alarm.py. These four classes interact in such a way that allows for an orchastrated excecution of the alarm system. Below you'll find detailed explanation of implementation of the four major classes and any major helper functions or odd scripts.
 
-# alarm.py
+### alarm.py
 
 The alarm class holds majority of the computation and data analysis. Here the user can create an instance or object of the alarm class by specifying the list of users the alrms will be mailed out to, a dictionary mapping out the tests and constraints they wish to test the data against or proceed with the default tests and constriants. In addition the user may also specify to ignore constraints entirely. This may result in an influx of emails containing mostly invalid data.
+
+''' fdfdgdf '''
 
