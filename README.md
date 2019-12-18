@@ -45,5 +45,89 @@ The alarm system is mainly comprised of four classes named alarm, sos, sql_email
 
 The alarm class holds majority of the computation and data analysis. Here the user can create an instance or object of the alarm class by specifying the list of users the alrms will be mailed out to, a dictionary mapping out the tests and constraints they wish to test the data against or proceed with the default tests and constriants. In addition the user may also specify to ignore constraints entirely. This may result in an influx of emails containing mostly invalid data.
 
-''' fdfdgdf '''
+``` python
+def __init__(self,recipients,tests = None,constraints = None, disable_constraints = False):
+        '''
+        Initializes an object of type alarms
+            
+        Class Attributes:
+            self.email is an object of the email class. This allows the alarms to be sent to the team
+            using the SQL Stored Procedure. Look at the sql_email class for more
+            self.tests a mapping of different tests to be conducted on the sos data*
+            self.constraints a mapping of constraints that invalidate or validate sos data*
+            
+        Parameters:
+            recipients: list, a list of recipient emails
+            tests: dict, (optional)a mapping of tests* 
+            constraints: dict, (optional)a mapping of data constraints*
+            disable_constraints: bool, signifies wether to consider data constraints or not. False by default,
+            setting to True may result in excessive emails
+            
+            *See Readme for more info
+         '''
+```
+The dictionary format for tests and constraints should follow the below structure otherwise results may be unpredictible:
+
+(alarm_type : (alarm_id,alarm_name) : [column, threshold, operation, rate]) }
+
+alarm_type could be a 'flat' signifying that the test is looking for exceeding threshold values to flag for alarms
+or the alarm_type could be 'constraint' which signifies wether the data is valid or invalid
+
+(alarm_id_alarm_name) is pairing which uniquely identifies a given alarm
+
+column specifies the datafield with in the data which the test is being conducted for. e.i 'Temperature'
+
+threshold is the threshold value which the column needs to meet. The specification as to how this threshold is met is specified by
+the operation which could be '==' ,'<=' , '>=, '<', '>' or '!='
+
+Finally rate is the time interval which the data is being checked over. This should be 0 until the rate of change functionality is implemented.
+
+The tests and constraints are stored in the view ``` FIS_CONED.sos.Tests ```. Here the ``` sos.Alarm_Types ``` and ```sos.Test_Types```
+are joined to produce this view. The Alarm_Types table contains the general info of an alarm such as creater, datecreated, name, id and
+wether its active or not. While the Test_Types holds the specific implementation of the test such as column, threshold, operation and rate. The rows of the two tables are connected via alarm_id.
+
+The most important function in the class besides the initializer is the 
+
+``` python
+
+ def analyze(self,sos,mark_as_unanalyzed = True):
+        '''
+         Parameters:
+            sos, sos: Instance of the sos box to be analyzed
+            mark_as_unanalyzed, bool: Determines if analyzed data gets marked as analyzed or not.
+
+        '''
+        unanalyzed_data = sos.get_unanalyzed_data()
+                
+        if not unanalyzed_data.empty:
+            
+            results_map = self.check(self.tests['Flat'],unanalyzed_data)
+
+            if results_map:
+           
+                recent_readings = sos._get_context(unanalyzed_data)
+
+                if self.is_valid_reading(recent_readings):
+
+                    imeinumber = sos.get_imein()
+                    serialno = sos.get_serialno()
+                    structure_info = sos.get_structure_info()
+                    earliest_measurement = str(recent_readings.loc[len(recent_readings)-1,'MeasurementTime'])
+                    latest_measurement = str(recent_readings.loc[0,'MeasurementTime'])
+                    
+                    for test_id,test in results_map.keys():
+                        self.record_alarm(test_id,test,imeinumber,latest_measurement,earliest_measurement)
+                        self.trigger_alarm(recent_readings,test,imeinumber,serialno,structure_info,results_map[test_id,test])
+        
+            results_map.clear()
+        
+        if mark_as_unanalyzed:
+                
+            sos._mark_as_analyzed(unanalyzed_data)
+ ```
+ 
+ This function is the only function the user needs to explicitly call. this function takes in as a parameter an object of the sos class signifying that the user has decided to analyze the data within thsi sos box.
+
+
+   
 
