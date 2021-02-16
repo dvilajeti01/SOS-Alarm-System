@@ -68,7 +68,7 @@ class sos(object):
         '''
         database = db()
         
-        SQL = """ SELECT DataID,MeasurementTime,Temperature,CO,Barometer
+        SQL = """ SELECT DataID, DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), MeasurementTime),Temperature,CO,Barometer
         ,Humidity,Flood,Battery,Methane,StrayVoltage 
         FROM FIS_CONED.sos.SensorData 
         WHERE IMEINumber = ? 
@@ -125,7 +125,7 @@ class sos(object):
             latest_data = data.loc[:,'MeasurementTime'].max()
             
             SQL = """
-            SELECT TOP %s DataID,MeasurementTime,Temperature,CO,Barometer
+            SELECT TOP %s DataID,DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), MeasurementTime),Temperature,CO,Barometer
             ,Humidity,Flood,Battery,Methane,StrayVoltage 
             FROM FIS_CONED.sos.SensorData
             WHERE MeasurementTime <= ?
